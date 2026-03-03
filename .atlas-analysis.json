@@ -1,0 +1,130 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Laravel Data",
+  "projectDescription": "Powerful data objects for Laravel that enable type-safe DTOs, API resources, and automatic validation",
+  "theme": "mint",
+  "primaryColor": "#2563eb",
+  "lightColor": "#3b82f6",
+  "darkColor": "#1e40af",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "requirements"
+            ]
+          },
+          {
+            "group": "As a Data Transfer Object",
+            "pages": [
+              "as-a-dto/creating-a-data-object",
+              "as-a-dto/request-to-data-object",
+              "as-a-dto/model-to-data-object",
+              "as-a-dto/collections",
+              "as-a-dto/nesting",
+              "as-a-dto/optional-properties",
+              "as-a-dto/defaults",
+              "as-a-dto/casts",
+              "as-a-dto/mapping-property-names",
+              "as-a-dto/computed",
+              "as-a-dto/factories",
+              "as-a-dto/injecting-property-values",
+              "as-a-dto/abstract-data"
+            ]
+          },
+          {
+            "group": "Validation",
+            "pages": [
+              "validation/introduction",
+              "validation/auto-rule-inferring",
+              "validation/using-validation-attributes",
+              "validation/manual-rules",
+              "validation/nesting-data",
+              "validation/working-with-the-validator",
+              "validation/skipping-validation"
+            ]
+          },
+          {
+            "group": "As a Resource",
+            "pages": [
+              "as-a-resource/from-data-to-resource",
+              "as-a-resource/from-data-to-array",
+              "as-a-resource/lazy-properties",
+              "as-a-resource/transformers",
+              "as-a-resource/mapping-property-names",
+              "as-a-resource/appending-properties",
+              "as-a-resource/wrapping"
+            ]
+          },
+          {
+            "group": "Advanced Usage",
+            "pages": [
+              "advanced-usage/eloquent-casting",
+              "advanced-usage/typescript",
+              "advanced-usage/use-with-livewire",
+              "advanced-usage/use-with-inertia",
+              "advanced-usage/creating-a-cast",
+              "advanced-usage/creating-a-transformer",
+              "advanced-usage/creating-a-rule-inferrer",
+              "advanced-usage/normalizers",
+              "advanced-usage/pipeline",
+              "advanced-usage/mapping-rules",
+              "advanced-usage/available-property-mappers",
+              "advanced-usage/working-with-dates",
+              "advanced-usage/validation-attributes",
+              "advanced-usage/traits-and-interfaces",
+              "advanced-usage/get-data-from-a-class-quickly",
+              "advanced-usage/internal-structures",
+              "advanced-usage/performance",
+              "advanced-usage/commands",
+              "advanced-usage/in-packages"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "third-party-packages",
+              "changelog",
+              "questions-issues"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Type-safe data transfer objects",
+    "Automatic API resource transformation",
+    "Built-in validation with auto-inferring rules",
+    "TypeScript definition generation",
+    "Eloquent model casting support",
+    "Lazy properties for partial transformations",
+    "Request to data object conversion",
+    "Collection support with pagination"
+  ],
+  "publicApiSurface": [
+    "Spatie\\LaravelData\\Data",
+    "Spatie\\LaravelData\\DataCollection",
+    "Spatie\\LaravelData\\Resource",
+    "Spatie\\LaravelData\\Attributes\\Validation\\*",
+    "Spatie\\LaravelData\\Attributes\\WithCast",
+    "Spatie\\LaravelData\\Attributes\\WithTransformer",
+    "Spatie\\LaravelData\\Attributes\\MapName",
+    "Spatie\\LaravelData\\Attributes\\Computed",
+    "Spatie\\LaravelData\\Casts\\Cast",
+    "Spatie\\LaravelData\\Transformers\\Transformer",
+    "Spatie\\LaravelData\\Lazy",
+    "Spatie\\LaravelData\\Optional",
+    "Data::from()",
+    "Data::collect()",
+    "Data::validate()",
+    "Data::withoutValidation()",
+    "Data::withoutMagicalCreation()"
+  ]
+}
