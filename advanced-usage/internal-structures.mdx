@@ -1,0 +1,231 @@
+---
+title: Internal Structures
+description: Reference for internal data structures used when writing casts, transformers, and rule inferrers
+---
+
+Laravel Data uses internal structures to analyze data objects and their properties. These structures are helpful when writing casts, transformers, or rule inferrers.
+
+## DataClass
+
+Represents the structure of a data object.
+
+### Properties
+
+- `name` - Name of the data class
+- `properties` - All `DataProperty` objects of the class
+- `methods` - All magical creation `DataMethod` objects
+- `constructorMethod` - The constructor `DataMethod`
+- `isReadOnly` - Whether the class is read-only
+- `isAbstract` - Whether the class is abstract
+- `appendable` - Whether the class implements `AppendableData`
+- `includeable` - Whether the class implements `IncludeableData`
+- `responsable` - Whether the class implements `ResponsableData`
+- `transformable` - Whether the class implements `TransformableData`
+- `validatable` - Whether the class implements `ValidatableData`
+- `wrappable` - Whether the class implements `WrappableData`
+- `emptyData` - Whether the class implements `EmptyData`
+- `attributes` - Collection of resolved attributes assigned to the class
+- `dataCollectablePropertyAnnotations` - Property annotations used to infer data collection type
+- `allowedRequestIncludes` - Allowed request includes
+- `allowedRequestExcludes` - Allowed request excludes
+- `allowedRequestOnly` - Allowed request only
+- `allowedRequestExcept` - Allowed request except
+- `outputMappedProperties` - Property names mapped when transforming
+- `transformationFields` - Structure of transformation fields
+
+## DataProperty
+
+Represents a single property within a data object.
+
+### Properties
+
+- `name` - Name of the property
+- `className` - Name of the class of the property
+- `type` - The `DataPropertyType` of the property
+- `validate` - Whether the property should be automatically validated
+- `computed` - Whether the property is computed
+- `hidden` - Whether the property is hidden when transforming
+- `isPromoted` - Whether the property is constructor promoted
+- `isReadOnly` - Whether the property is read-only
+- `hasDefaultValue` - Whether the property has a default value
+- `defaultValue` - The default value of the property
+- `cast` - The cast assigned to the property
+- `transformer` - The transformer assigned to the property
+- `inputMappedName` - The name used to map an input property name
+- `outputMappedName` - The name used to map an output property name
+- `attributes` - Collection of resolved attributes assigned to the property
+
+## DataMethod
+
+Represents a method within a data object.
+
+### Properties
+
+- `name` - Name of the method
+- `parameters` - All `DataParameter` and `DataProperty` objects of the method
+- `isStatic` - Whether the method is static
+- `isPublic` - Whether the method is public
+- `isCustomCreationMethod` - Whether the method is a custom creation method (magical)
+- `returnType` - The `DataType` of the return value
+
+## DataParameter
+
+Represents a single parameter/property within a data method.
+
+### Properties
+
+- `name` - Name of the parameter
+- `isPromoted` - Whether the property/parameter is constructor promoted
+- `hasDefaultValue` - Whether the parameter has a default value
+- `defaultValue` - The default value of the parameter
+- `type` - The `DataType` of the parameter
+
+## DataType
+
+Represents a type within a data object.
+
+### Properties
+
+- `Type` - Can be a `NamedType`, `UnionType`, or `IntersectionType`
+- `isNullable` - Whether the type can be nullable
+- `isMixed` - Whether the type is a mixed type
+- `kind` - The `DataTypeKind` of the type
+
+## DataPropertyType
+
+Extends `DataType` with additional properties for data properties.
+
+### Properties
+
+Inherits all properties from `DataType`, plus:
+
+- `isOptional` - Whether the type can be optional
+- `lazyType` - The class of the lazy type for the property
+- `dataClass` - The data object class or collection data class
+- `dataCollectableClass` - The collectable type of data objects
+- `kind` - The `DataTypeKind` of the type
+
+## DataTypeKind
+
+An enum representing the kind of type with respect to the package:
+
+- `Default` - A non-package-specific type
+- `DataObject` - A data object
+- `DataCollection` - A `DataCollection` of data objects
+- `DataPaginatedCollection` - A `DataPaginatedCollection` of data objects
+- `DataCursorPaginatedCollection` - A `DataCursorPaginatedCollection` of data objects
+- `DataArray` - An array of data objects
+- `DataEnumerable` - An `Enumerable` of data objects
+- `DataPaginator` - A `Paginator` of data objects
+- `DataCursorPaginator` - A `CursorPaginator` of data objects
+
+## NamedType
+
+Represents a named PHP type.
+
+### Properties
+
+- `name` - The name of the type
+- `builtIn` - Whether the type is a built-in type
+- `acceptedTypes` - Array of accepted types as strings
+- `kind` - The `DataTypeKind` of the type
+- `dataClass` - The data object class or collection data class
+- `dataCollectableClass` - The collectable type of data objects
+- `isCastable` - Whether the type is a `Castable`
+
+## UnionType / IntersectionType
+
+Represents a union or intersection of types.
+
+### Properties
+
+- `types` - Array of types (can be `NamedType`, `UnionType`, or `IntersectionType`)
+
+## Usage in Casts
+
+```php
+use Spatie\LaravelData\Casts\Cast;
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Creation\CreationContext;
+
+class CustomCast implements Cast
+{
+    public function cast(
+        DataProperty $property, 
+        mixed $value, 
+        array $properties, 
+        CreationContext $context
+    ): mixed {
+        // Access property information
+        $propertyName = $property->name;
+        $propertyType = $property->type;
+        $isNullable = $property->type->isNullable;
+        
+        // Access the data class being created
+        $dataClassName = $context->dataClass;
+        
+        // Perform casting logic
+        return $value;
+    }
+}
+```
+
+## Usage in Transformers
+
+```php
+use Spatie\LaravelData\Transformers\Transformer;
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Transformation\TransformationContext;
+
+class CustomTransformer implements Transformer
+{
+    public function transform(
+        DataProperty $property, 
+        mixed $value, 
+        TransformationContext $context
+    ): mixed {
+        // Access property information
+        $propertyName = $property->name;
+        $outputName = $property->outputMappedName ?? $property->name;
+        
+        // Access transformation context
+        $shouldTransformValues = $context->transformValues;
+        
+        // Perform transformation logic
+        return $value;
+    }
+}
+```
+
+## Usage in Rule Inferrers
+
+```php
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Validation\PropertyRules;
+use Spatie\LaravelData\Support\Validation\ValidationContext;
+use Spatie\LaravelData\Support\Validation\RuleInferrer;
+
+class CustomRuleInferrer implements RuleInferrer
+{
+    public function handle(
+        DataProperty $property,
+        PropertyRules $rules,
+        ValidationContext $context
+    ): PropertyRules {
+        // Access property information
+        $propertyName = $property->name;
+        $propertyType = $property->type;
+        
+        // Access validation context
+        $payload = $context->payload;
+        $validationPath = $context->validationPath;
+        
+        // Add rules based on property analysis
+        if ($property->type->isNullable) {
+            $rules->add(new Nullable());
+        }
+        
+        return $rules;
+    }
+}
+```

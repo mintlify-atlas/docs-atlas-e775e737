@@ -1,0 +1,126 @@
+---
+title: Pipeline
+description: Configure how data objects are constructed from payloads using the data pipeline
+---
+
+The data pipeline configures how data objects are constructed from a payload. A normalized array is passed through multiple pipes that transform it into property values for the data object constructor.
+
+## Default Pipeline
+
+The pipeline consists of these pipes by default:
+
+- **AuthorizedDataPipe** - Checks if the user is authorized to perform the request
+- **MapPropertiesDataPipe** - Maps property names
+- **FillRouteParameterPropertiesDataPipe** - Fills property values from route parameters
+- **ValidatePropertiesDataPipe** - Validates properties
+- **DefaultValuesDataPipe** - Adds default values for unset properties
+- **CastPropertiesDataPipe** - Casts property values
+
+## Customizing the Pipeline
+
+Define a custom pipeline for a data object:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        // ...
+    ) {
+    }
+
+    public static function pipeline(): DataPipeline
+    {
+        return DataPipeline::create()
+            ->into(static::class)
+            ->through(AuthorizedDataPipe::class)
+            ->through(MapPropertiesDataPipe::class)
+            ->through(FillRouteParameterPropertiesDataPipe::class)
+            ->through(ValidatePropertiesDataPipe::class)
+            ->through(DefaultValuesDataPipe::class)
+            ->through(CastPropertiesDataPipe::class);
+    }
+}
+```
+
+## Creating a DataPipe
+
+Implement the `DataPipe` interface:
+
+```php
+interface DataPipe
+{
+    public function handle(mixed $payload, DataClass $class, array $properties, CreationContext $creationContext): array;
+}
+```
+
+### Parameters
+
+- **payload** - The non-normalized payload
+- **class** - `DataClass` object for the data object ([more info](/advanced-usage/internal-structures))
+- **properties** - Key-value properties for constructing the data object
+- **creationContext** - Context containing:
+  - `dataClass` - The data class being created
+  - `validationStrategy` - The validation strategy in use
+  - `mapPropertyNames` - Whether property names should be mapped
+  - `disableMagicalCreation` - Whether to use magical creation methods
+  - `ignoredMagicalMethods` - Which magical methods are ignored
+  - `casts` - Collection of global casts
+
+## Preparing Data for the Pipeline
+
+Modify the payload after normalization but before entering the pipeline:
+
+```php
+class SongMetadata
+{
+    public function __construct(
+        public string $releaseYear,
+        public string $producer,
+    ) {}
+}
+
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        public SongMetadata $metadata,
+    ) {}
+    
+    public static function prepareForPipeline(array $properties): array
+    {
+        $properties['metadata'] = Arr::only($properties, ['release_year', 'producer']);
+        
+        return $properties;
+    }
+}
+```
+
+Now create a data object with a flat structure:
+
+```php
+$songData = SongData::from([
+    'title' => 'Never gonna give you up',
+    'release_year' => '1987',
+    'producer' => 'Stock Aitken Waterman',
+]);
+```
+
+## Extending the Pipeline
+
+Add a pipe at the beginning without creating a whole new pipeline:
+
+```php
+class SongData extends Data
+{
+    public static function pipeline(): DataPipeline
+    {
+        return parent::pipeline()->firstThrough(GuessCasingForKeyDataPipe::class);
+    }
+}
+```
+
+## Pipeline and Magic Methods
+
+<Note>
+When using magic creation methods, the pipeline is not used (since you manually control construction). Only when you pass a request object is a minimal version used for authorization and validation.
+</Note>

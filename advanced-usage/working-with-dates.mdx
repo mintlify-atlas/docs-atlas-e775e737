@@ -1,0 +1,126 @@
+---
+title: Working with Dates
+description: Configure date formats, timezones, and types for date properties in Laravel Data
+---
+
+Laravel Data provides flexible date handling with support for multiple formats, timezones, and date types.
+
+## Default Date Format
+
+Configure the default format in `config/data.php`:
+
+```php
+'date_format' => DATE_ATOM,
+```
+
+Use with `DateTimeInterfaceCast` and `DateTimeInterfaceTransformer`:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class)]
+#[WithTransformer(DateTimeInterfaceTransformer::class)]
+public DateTime $date;
+```
+
+## Custom Formats
+
+Override the format per property:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class, format: DATE_ATOM)]
+#[WithTransformer(DateTimeInterfaceTransformer::class, format: DATE_ATOM)]
+public DateTime $date;
+```
+
+## Using Carbon
+
+The package automatically casts to the property type:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class)]
+public Carbon $date;
+```
+
+Or explicitly specify the type:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class, type: CarbonImmutable::class)]
+public $date;
+```
+
+## Multiple Date Formats
+
+Accept different date formats from various sources:
+
+```php
+'date_format' => [DATE_ATOM, 'Y-m-d'],
+```
+
+When casting, the package searches for a valid format. When transforming without an explicit format, the first format in the array is used.
+
+<Note>
+This is useful when receiving dates from iOS and React applications that use different underlying formats.
+</Note>
+
+## Casting with Different Timezones
+
+Specify the timezone of incoming dates:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class, timeZone: 'UTC')]
+public DateTime $date;
+```
+
+The date is created with the `UTC` timezone but represents the same moment in time as your application's timezone.
+
+## Changing Timezones
+
+### On Cast
+
+Convert the date to a different timezone during casting:
+
+```php
+#[WithCast(DateTimeInterfaceCast::class, setTimeZone: 'Europe/Brussels')]
+public DateTime $date;
+```
+
+The time will be transformed. If the original time was in `UTC`, one or two hours (depending on daylight saving) will be added.
+
+### On Transform
+
+Convert the timezone when transforming:
+
+```php
+#[WithTransformer(DateTimeInterfaceTransformer::class, setTimeZone: 'Europe/Brussels')]
+public DateTime $date;
+```
+
+## Complete Example
+
+```php
+use Carbon\Carbon;
+use Spatie\LaravelData\Attributes\WithCast;
+use Spatie\LaravelData\Attributes\WithTransformer;
+use Spatie\LaravelData\Casts\DateTimeInterfaceCast;
+use Spatie\LaravelData\Transformers\DateTimeInterfaceTransformer;
+
+class EventData extends Data
+{
+    public function __construct(
+        // Default format from config
+        #[WithCast(DateTimeInterfaceCast::class)]
+        #[WithTransformer(DateTimeInterfaceTransformer::class)]
+        public Carbon $createdAt,
+        
+        // Custom format
+        #[WithCast(DateTimeInterfaceCast::class, format: 'Y-m-d H:i:s')]
+        #[WithTransformer(DateTimeInterfaceTransformer::class, format: 'Y-m-d H:i:s')]
+        public Carbon $updatedAt,
+        
+        // With timezone conversion
+        #[WithCast(DateTimeInterfaceCast::class, setTimeZone: 'Europe/Brussels')]
+        #[WithTransformer(DateTimeInterfaceTransformer::class, setTimeZone: 'UTC')]
+        public Carbon $scheduledAt,
+    ) {
+    }
+}
+```

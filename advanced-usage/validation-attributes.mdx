@@ -1,0 +1,1029 @@
+---
+title: Validation Attributes
+description: Complete reference of all validation attributes available in Laravel Data
+---
+
+Laravel Data provides validation attributes that correspond to Laravel's validation rules. Use these attributes on data properties to automatically generate validation rules.
+
+## String Validation
+
+<AccordionGroup>
+<Accordion title="Alpha">
+[Docs](https://laravel.com/docs/validation#rule-alpha)
+
+```php
+#[Alpha]
+public string $name;
+```
+</Accordion>
+
+<Accordion title="AlphaDash">
+[Docs](https://laravel.com/docs/validation#rule-alpha-dash)
+
+```php
+#[AlphaDash]
+public string $username;
+```
+</Accordion>
+
+<Accordion title="AlphaNumeric">
+[Docs](https://laravel.com/docs/validation#rule-alpha-num)
+
+```php
+#[AlphaNumeric]
+public string $code;
+```
+</Accordion>
+
+<Accordion title="StringType">
+[Docs](https://laravel.com/docs/validation#rule-string)
+
+```php
+#[StringType]
+public string $text;
+```
+</Accordion>
+
+<Accordion title="Lowercase">
+[Docs](https://laravel.com/docs/validation#rule-lowercase)
+
+```php
+#[Lowercase]
+public string $email;
+```
+</Accordion>
+
+<Accordion title="Uppercase">
+[Docs](https://laravel.com/docs/validation#rule-uppercase)
+
+```php
+#[Uppercase]
+public string $countryCode;
+```
+</Accordion>
+</AccordionGroup>
+
+## Numeric Validation
+
+<AccordionGroup>
+<Accordion title="IntegerType">
+[Docs](https://laravel.com/docs/validation#rule-integer)
+
+```php
+#[IntegerType]
+public int $count;
+```
+</Accordion>
+
+<Accordion title="Numeric">
+[Docs](https://laravel.com/docs/validation#rule-numeric)
+
+```php
+#[Numeric]
+public string|int|float $amount;
+```
+</Accordion>
+
+<Accordion title="Min">
+[Docs](https://laravel.com/docs/validation#rule-min)
+
+```php
+#[Min(20)]
+public int $age;
+```
+</Accordion>
+
+<Accordion title="Max">
+[Docs](https://laravel.com/docs/validation#rule-max)
+
+```php
+#[Max(100)]
+public int $percentage;
+```
+</Accordion>
+
+<Accordion title="Between">
+[Docs](https://laravel.com/docs/validation#rule-between)
+
+```php
+#[Between(3.14, 42)]
+public float $value;
+```
+</Accordion>
+
+<Accordion title="Digits">
+[Docs](https://laravel.com/docs/validation#rule-digits)
+
+```php
+#[Digits(10)]
+public int $phoneNumber;
+```
+</Accordion>
+
+<Accordion title="DigitsBetween">
+[Docs](https://laravel.com/docs/validation#rule-digits-between)
+
+```php
+#[DigitsBetween(2, 10)]
+public int $code;
+```
+</Accordion>
+
+<Accordion title="MinDigits">
+[Docs](https://laravel.com/docs/validation#rule-min-digits)
+
+```php
+#[MinDigits(2)]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="MaxDigits">
+[Docs](https://laravel.com/docs/validation#rule-max-digits)
+
+```php
+#[MaxDigits(10)]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="MultipleOf">
+[Docs](https://laravel.com/docs/validation#rule-multiple-of)
+
+```php
+#[MultipleOf(3)]
+public int $quantity;
+```
+</Accordion>
+</AccordionGroup>
+
+## Date Validation
+
+<AccordionGroup>
+<Accordion title="Date">
+[Docs](https://laravel.com/docs/validation#rule-date)
+
+```php
+#[Date]
+public Carbon $date;
+```
+</Accordion>
+
+<Accordion title="DateFormat">
+[Docs](https://laravel.com/docs/validation#rule-date-format)
+
+```php
+#[DateFormat('d-m-Y')]
+public Carbon $date;
+
+#[DateFormat(['Y-m-d', 'Y-m-d H:i:s'])]
+public Carbon $date;
+```
+</Accordion>
+
+<Accordion title="DateEquals">
+[Docs](https://laravel.com/docs/validation#rule-date-equals)
+
+```php
+#[DateEquals('tomorrow')]
+public Carbon $date;
+
+#[DateEquals(Carbon::yesterday())]
+public Carbon $date;
+```
+</Accordion>
+
+<Accordion title="After">
+[Docs](https://laravel.com/docs/validation#rule-after)
+
+```php
+#[After('tomorrow')]
+public Carbon $date;
+
+#[After(Carbon::yesterday())]
+public Carbon $date;
+
+#[After(new FieldReference('start_date'))]
+public Carbon $endDate;
+```
+</Accordion>
+
+<Accordion title="AfterOrEqual">
+[Docs](https://laravel.com/docs/validation#rule-after-or-equal)
+
+```php
+#[AfterOrEqual('tomorrow')]
+public Carbon $date;
+
+#[AfterOrEqual(new FieldReference('start_date'))]
+public Carbon $endDate;
+```
+</Accordion>
+
+<Accordion title="Before">
+[Docs](https://laravel.com/docs/validation#rule-before)
+
+```php
+#[Before('tomorrow')]
+public Carbon $date;
+
+#[Before(new FieldReference('end_date'))]
+public Carbon $startDate;
+```
+</Accordion>
+
+<Accordion title="BeforeOrEqual">
+[Docs](https://laravel.com/docs/validation#rule-before-or-equal)
+
+```php
+#[BeforeOrEqual('tomorrow')]
+public Carbon $date;
+
+#[BeforeOrEqual(new FieldReference('end_date'))]
+public Carbon $startDate;
+```
+</Accordion>
+</AccordionGroup>
+
+## Boolean & Acceptance
+
+<AccordionGroup>
+<Accordion title="BooleanType">
+[Docs](https://laravel.com/docs/validation#rule-boolean)
+
+```php
+#[BooleanType]
+public bool $active;
+```
+</Accordion>
+
+<Accordion title="Accepted">
+[Docs](https://laravel.com/docs/validation#rule-accepted)
+
+```php
+#[Accepted]
+public bool $termsAccepted;
+```
+</Accordion>
+
+<Accordion title="AcceptedIf">
+[Docs](https://laravel.com/docs/validation#rule-accepted-if)
+
+```php
+#[AcceptedIf('other_field', 'equals_this')]
+public bool $confirmation;
+```
+</Accordion>
+
+<Accordion title="Declined">
+[Docs](https://laravel.com/docs/validation#rule-declined)
+
+```php
+#[Declined]
+public bool $optOut;
+```
+</Accordion>
+
+<Accordion title="DeclinedIf">
+[Docs](https://laravel.com/docs/validation#rule-declined-if)
+
+```php
+#[DeclinedIf('other_field', 'equals_this')]
+public bool $optOut;
+```
+</Accordion>
+</AccordionGroup>
+
+## Array Validation
+
+<AccordionGroup>
+<Accordion title="ArrayType">
+[Docs](https://laravel.com/docs/validation#rule-array)
+
+```php
+#[ArrayType]
+public array $items;
+
+#[ArrayType(['valid_key', 'other_valid_key'])]
+public array $items;
+
+#[ArrayType('valid_key', 'other_valid_key')]
+public array $items;
+```
+</Accordion>
+
+<Accordion title="ListType">
+[Docs](https://laravel.com/docs/validation#rule-list)
+
+```php
+#[ListType]
+public array $items;
+```
+</Accordion>
+
+<Accordion title="RequiredArrayKeys">
+[Docs](https://laravel.com/docs/validation#rule-required-array-keys)
+
+```php
+#[RequiredArrayKeys('a')]
+public array $items;
+
+#[RequiredArrayKeys(['a', 'b'])]
+public array $items;
+
+#[RequiredArrayKeys('a', 'b')]
+public array $items;
+```
+</Accordion>
+
+<Accordion title="Distinct">
+[Docs](https://laravel.com/docs/validation#rule-distinct)
+
+```php
+#[Distinct]
+public string $value;
+
+#[Distinct(Distinct::Strict)]
+public string $value;
+
+#[Distinct(Distinct::IgnoreCase)]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## String Patterns
+
+<AccordionGroup>
+<Accordion title="StartsWith">
+[Docs](https://laravel.com/docs/validation#rule-starts-with)
+
+```php
+#[StartsWith('a')]
+public string $value;
+
+#[StartsWith(['a', 'b'])]
+public string $value;
+
+#[StartsWith('a', 'b')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="EndsWith">
+[Docs](https://laravel.com/docs/validation#rule-ends-with)
+
+```php
+#[EndsWith('a')]
+public string $value;
+
+#[EndsWith(['a', 'b'])]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="DoesntStartWith">
+[Docs](https://laravel.com/docs/validation#rule-doesnt-start-with)
+
+```php
+#[DoesntStartWith('a')]
+public string $value;
+
+#[DoesntStartWith(['a', 'b'])]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="DoesntEndWith">
+[Docs](https://laravel.com/docs/validation#rule-doesnt-end-with)
+
+```php
+#[DoesntEndWith('a')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="Regex">
+[Docs](https://laravel.com/docs/validation#rule-regex)
+
+```php
+#[Regex('/^.+$/i')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="NotRegex">
+[Docs](https://laravel.com/docs/validation#rule-not-regex)
+
+```php
+#[NotRegex('/^.+$/i')]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## Email & URL
+
+<AccordionGroup>
+<Accordion title="Email">
+[Docs](https://laravel.com/docs/validation#rule-email)
+
+```php
+#[Email]
+public string $email;
+
+#[Email(Email::RfcValidation)]
+public string $email;
+
+#[Email([Email::RfcValidation, Email::DnsCheckValidation])]
+public string $email;
+```
+</Accordion>
+
+<Accordion title="Url">
+[Docs](https://laravel.com/docs/validation#rule-url)
+
+```php
+#[Url]
+public string $website;
+
+#[Url(['http', 'https'])]
+public string $website;
+```
+</Accordion>
+
+<Accordion title="ActiveUrl">
+[Docs](https://laravel.com/docs/validation#rule-active-url)
+
+```php
+#[ActiveUrl]
+public string $website;
+```
+</Accordion>
+</AccordionGroup>
+
+## IP & Network
+
+<AccordionGroup>
+<Accordion title="IP">
+[Docs](https://laravel.com/docs/validation#rule-ip)
+
+```php
+#[IP]
+public string $ipAddress;
+```
+</Accordion>
+
+<Accordion title="IPv4">
+[Docs](https://laravel.com/docs/validation#ipv4)
+
+```php
+#[IPv4]
+public string $ipAddress;
+```
+</Accordion>
+
+<Accordion title="IPv6">
+[Docs](https://laravel.com/docs/validation#ipv6)
+
+```php
+#[IPv6]
+public string $ipAddress;
+```
+</Accordion>
+
+<Accordion title="MacAddress">
+[Docs](https://laravel.com/docs/validation#rule-mac)
+
+```php
+#[MacAddress]
+public string $macAddress;
+```
+</Accordion>
+</AccordionGroup>
+
+## Database
+
+<AccordionGroup>
+<Accordion title="Exists">
+[Docs](https://laravel.com/docs/validation#rule-exists)
+
+```php
+#[Exists('users')]
+public string $userId;
+
+#[Exists(User::class)]
+public string $userId;
+
+#[Exists('users', 'email')]
+public string $email;
+
+#[Exists('users', 'email', connection: 'tenant')]
+public string $email;
+
+#[Exists('users', 'email', withoutTrashed: true)]
+public string $email;
+```
+</Accordion>
+
+<Accordion title="Unique">
+[Docs](https://laravel.com/docs/validation#rule-unique)
+
+```php
+#[Unique('users')]
+public string $email;
+
+#[Unique(User::class)]
+public string $email;
+
+#[Unique('users', 'email')]
+public string $email;
+
+#[Unique('users', connection: 'tenant')]
+public string $email;
+
+#[Unique('users', withoutTrashed: true)]
+public string $email;
+
+#[Unique('users', ignore: 5)]
+public string $email;
+
+#[Unique('users', ignore: new AuthenticatedUserReference())]
+public string $email;
+
+#[Unique('posts', ignore: new RouteParameterReference('post'))]
+public string $slug;
+```
+</Accordion>
+</AccordionGroup>
+
+## File Validation
+
+<AccordionGroup>
+<Accordion title="File">
+[Docs](https://laravel.com/docs/validation#rule-file)
+
+```php
+#[File]
+public UploadedFile $document;
+```
+</Accordion>
+
+<Accordion title="Image">
+[Docs](https://laravel.com/docs/validation#rule-image)
+
+```php
+#[Image]
+public UploadedFile $photo;
+```
+</Accordion>
+
+<Accordion title="Mimes">
+[Docs](https://laravel.com/docs/validation#rule-mimes)
+
+```php
+#[Mimes('jpg')]
+public UploadedFile $image;
+
+#[Mimes(['jpg', 'png'])]
+public UploadedFile $image;
+
+#[Mimes('jpg', 'png')]
+public UploadedFile $image;
+```
+</Accordion>
+
+<Accordion title="MimeTypes">
+[Docs](https://laravel.com/docs/validation#rule-mimetypes)
+
+```php
+#[MimeTypes('video/quicktime')]
+public UploadedFile $video;
+
+#[MimeTypes(['video/quicktime', 'video/avi'])]
+public UploadedFile $video;
+```
+</Accordion>
+
+<Accordion title="Dimensions">
+[Docs](https://laravel.com/docs/validation#rule-dimensions)
+
+```php
+#[Dimensions(ratio: 1.5)]
+public UploadedFile $image;
+
+#[Dimensions(maxWidth: 100, maxHeight: 100)]
+public UploadedFile $image;
+```
+</Accordion>
+</AccordionGroup>
+
+## Field Relationships
+
+<AccordionGroup>
+<Accordion title="Required">
+[Docs](https://laravel.com/docs/validation#rule-required)
+
+```php
+#[Required]
+public string $name;
+```
+</Accordion>
+
+<Accordion title="RequiredIf">
+[Docs](https://laravel.com/docs/validation#rule-required-if)
+
+```php
+#[RequiredIf('other_field', 'value')]
+public ?string $conditional;
+
+#[RequiredIf('other_field', ['value', 'another_value'])]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="RequiredUnless">
+[Docs](https://laravel.com/docs/validation#rule-required-unless)
+
+```php
+#[RequiredUnless('other_field', 'value')]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="RequiredWith">
+[Docs](https://laravel.com/docs/validation#rule-required-with)
+
+```php
+#[RequiredWith('other_field')]
+public ?string $conditional;
+
+#[RequiredWith(['other_field', 'another_field'])]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="RequiredWithAll">
+[Docs](https://laravel.com/docs/validation#rule-required-with-all)
+
+```php
+#[RequiredWithAll(['other_field', 'another_field'])]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="RequiredWithout">
+[Docs](https://laravel.com/docs/validation#rule-required-without)
+
+```php
+#[RequiredWithout('other_field')]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="RequiredWithoutAll">
+[Docs](https://laravel.com/docs/validation#rule-required-without-all)
+
+```php
+#[RequiredWithoutAll(['other_field', 'another_field'])]
+public ?string $conditional;
+```
+</Accordion>
+
+<Accordion title="Same">
+[Docs](https://laravel.com/docs/validation#rule-same)
+
+```php
+#[Same('other_field')]
+public string $confirmation;
+```
+</Accordion>
+
+<Accordion title="Different">
+[Docs](https://laravel.com/docs/validation#rule-different)
+
+```php
+#[Different('other_field')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="Confirmed">
+[Docs](https://laravel.com/docs/validation#rule-confirmed)
+
+```php
+#[Confirmed]
+public string $password;
+```
+</Accordion>
+</AccordionGroup>
+
+## Advanced
+
+<AccordionGroup>
+<Accordion title="Enum">
+[Docs](https://laravel.com/docs/validation#rule-enum)
+
+```php
+#[Enum(ChannelType::class)]
+public string $channel;
+
+#[Enum(ChannelType::class, only: [ChannelType::Email])]
+public string $channel;
+
+#[Enum(ChannelType::class, except: [ChannelType::Email])]
+public string $channel;
+```
+</Accordion>
+
+<Accordion title="Uuid">
+[Docs](https://laravel.com/docs/validation#rule-uuid)
+
+```php
+#[Uuid]
+public string $id;
+```
+</Accordion>
+
+<Accordion title="Ulid">
+[Docs](https://laravel.com/docs/validation#rule-ulid)
+
+```php
+#[Ulid]
+public string $id;
+```
+</Accordion>
+
+<Accordion title="Json">
+[Docs](https://laravel.com/docs/validation#rule-json)
+
+```php
+#[Json]
+public string $metadata;
+```
+</Accordion>
+
+<Accordion title="TimeZone">
+[Docs](https://laravel.com/docs/validation#rule-timezone)
+
+```php
+#[TimeZone]
+public string $timezone;
+```
+</Accordion>
+
+<Accordion title="Password">
+[Docs](https://laravel.com/docs/validation#rule-password)
+
+```php
+#[Password(min: 12, letters: true, mixedCase: true, numbers: false, symbols: false, uncompromised: true, uncompromisedThreshold: 0)]
+public string $password;
+```
+</Accordion>
+
+<Accordion title="CurrentPassword">
+[Docs](https://laravel.com/docs/validation#rule-current-password)
+
+```php
+#[CurrentPassword]
+public string $currentPassword;
+
+#[CurrentPassword('api')]
+public string $currentPassword;
+```
+</Accordion>
+</AccordionGroup>
+
+## Special Rules
+
+<AccordionGroup>
+<Accordion title="Rule">
+Define custom validation rules:
+
+```php
+#[Rule('string|uuid')]
+public string $id;
+
+#[Rule(['string','uuid'])]
+public string $id;
+```
+</Accordion>
+
+<Accordion title="Nullable">
+[Docs](https://laravel.com/docs/validation#rule-nullable)
+
+```php
+#[Nullable]
+public ?string $optionalField;
+```
+</Accordion>
+
+<Accordion title="Sometimes">
+[Docs](https://laravel.com/docs/validation#validating-when-present)
+
+```php
+#[Sometimes]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="Bail">
+[Docs](https://laravel.com/docs/validation#rule-bail)
+
+```php
+#[Bail]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="Filled">
+[Docs](https://laravel.com/docs/validation#rule-filled)
+
+```php
+#[Filled]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="Present">
+[Docs](https://laravel.com/docs/validation#rule-present)
+
+```php
+#[Present]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## Comparison
+
+<AccordionGroup>
+<Accordion title="GreaterThan">
+[Docs](https://laravel.com/docs/validation#rule-gt)
+
+```php
+#[GreaterThan('other_field')]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="GreaterThanOrEqualTo">
+[Docs](https://laravel.com/docs/validation#rule-gte)
+
+```php
+#[GreaterThanOrEqualTo('other_field')]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="LessThan">
+[Docs](https://laravel.com/docs/validation#rule-lt)
+
+```php
+#[LessThan('other_field')]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="LessThanOrEqualTo">
+[Docs](https://laravel.com/docs/validation#rule-lte)
+
+```php
+#[LessThanOrEqualTo('other_field')]
+public int $value;
+```
+</Accordion>
+
+<Accordion title="Size">
+[Docs](https://laravel.com/docs/validation#rule-size)
+
+```php
+#[Size(10)]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## Lists & Values
+
+<AccordionGroup>
+<Accordion title="In">
+[Docs](https://laravel.com/docs/validation#rule-in)
+
+```php
+#[In([1, 2, 3, 'a', 'b'])]
+public mixed $value;
+
+#[In(1, 2, 3, 'a', 'b')]
+public mixed $value;
+```
+</Accordion>
+
+<Accordion title="NotIn">
+[Docs](https://laravel.com/docs/validation#rule-not-in)
+
+```php
+#[NotIn([1, 2, 3, 'a', 'b'])]
+public mixed $value;
+```
+</Accordion>
+
+<Accordion title="InArray">
+[Docs](https://laravel.com/docs/validation#rule-in-array)
+
+```php
+#[InArray('other_field')]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## Prohibition
+
+<AccordionGroup>
+<Accordion title="Prohibited">
+[Docs](https://laravel.com/docs/validation#rule-prohibited)
+
+```php
+#[Prohibited]
+public ?string $value;
+```
+</Accordion>
+
+<Accordion title="ProhibitedIf">
+[Docs](https://laravel.com/docs/validation#rule-prohibited-if)
+
+```php
+#[ProhibitedIf('other_field', 'has_value')]
+public ?string $value;
+
+#[ProhibitedIf('other_field', ['has_value', 'or_this_value'])]
+public ?string $value;
+```
+</Accordion>
+
+<Accordion title="ProhibitedUnless">
+[Docs](https://laravel.com/docs/validation#rule-prohibited-unless)
+
+```php
+#[ProhibitedUnless('other_field', 'has_value')]
+public ?string $value;
+```
+</Accordion>
+
+<Accordion title="Prohibits">
+[Docs](https://laravel.com/docs/validation#rule-prohibits)
+
+```php
+#[Prohibits('other_field')]
+public ?string $value;
+
+#[Prohibits(['other_field', 'another_field'])]
+public ?string $value;
+```
+</Accordion>
+</AccordionGroup>
+
+## Exclusion
+
+<Warning>
+At the moment the data is not yet excluded due to technical reasons. Version 4 should fix this.
+</Warning>
+
+<AccordionGroup>
+<Accordion title="ExcludeIf">
+[Docs](https://laravel.com/docs/validation#rule-exclude-if)
+
+```php
+#[ExcludeIf('other_field', 'has_value')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="ExcludeUnless">
+[Docs](https://laravel.com/docs/validation#rule-exclude-unless)
+
+```php
+#[ExcludeUnless('other_field', 'has_value')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="ExcludeWith">
+[Docs](https://laravel.com/docs/validation#rule-exclude-with)
+
+```php
+#[ExcludeWith('other_field')]
+public string $value;
+```
+</Accordion>
+
+<Accordion title="ExcludeWithout">
+[Docs](https://laravel.com/docs/validation#rule-exclude-without)
+
+```php
+#[ExcludeWithout('other_field')]
+public string $value;
+```
+</Accordion>
+</AccordionGroup>

@@ -1,0 +1,189 @@
+---
+title: Performance
+description: Optimize Laravel Data performance by caching data structure analysis
+---
+
+Laravel Data uses PHP reflection to infer property types, validation rules, and transformations. While powerful, this comes with a performance cost that can be eliminated by caching.
+
+## The Performance Cost
+
+During development, the reflection overhead is typically negligible. However, in production with many data objects, this analysis happens on every request unless cached.
+
+<Note>
+The good news: Laravel Data can operate without reflection by using cached analysis results.
+</Note>
+
+## Caching Structures
+
+Cache all data object analysis before deploying to production:
+
+```bash
+php artisan data:cache-structures
+```
+
+This command:
+1. Searches for all data objects in your application
+2. Analyzes each data object
+3. Stores the results in your configured cache
+
+<Warning>
+**Always run this command** after creating or modifying data objects, or when deploying to production.
+</Warning>
+
+## Configuration
+
+Configure caching in `config/data.php`:
+
+### Cache Store
+
+Specify which cache driver to use:
+
+```php
+'structure_caching' => [
+    'cache' => [
+        'store' => 'redis',
+        'prefix' => 'laravel-data',
+    ],
+],
+```
+
+By default, it uses your application's default cache store.
+
+### Discovery Directories
+
+Configure which directories to search:
+
+```php
+'structure_caching' => [
+    'directories' => [
+        app_path('Data'),
+        app_path('DTOs'),
+    ],
+],
+```
+
+By default, the `app/Data` directory is searched recursively.
+
+### Discovery Method
+
+The package uses [php-structure-discoverer](https://github.com/spatie/php-structure-discoverer) to find data classes.
+
+#### Reflection Discovery (Default)
+
+Enabled by default:
+
+```php
+'structure_caching' => [
+    'reflection_discovery' => [
+        'enabled' => true,
+        'base_path' => base_path(),
+        'root_namespace' => null,
+    ],
+],
+```
+
+#### PHP Parser Discovery
+
+Disable reflection and use the PHP parser instead:
+
+```php
+'structure_caching' => [
+    'reflection_discovery' => [
+        'enabled' => false,
+    ],
+],
+```
+
+When using the parser, include the Laravel Data source:
+
+```php
+'structure_caching' => [
+    'directories' => [
+        app_path('Data'),
+        base_path('vendor/spatie/laravel-data/src'),
+    ],
+],
+```
+
+<Accordion title="Why include vendor directory?">
+The parser can't depend on reflection, so it needs to analyze the Laravel Data source code to understand what constitutes a data object.
+</Accordion>
+
+### Disabling Caching
+
+Disable structure caching entirely:
+
+```php
+'structure_caching' => [
+    'enabled' => false,
+],
+```
+
+## Testing
+
+<Note>
+The cache is automatically disabled during tests to ensure analysis results are always up-to-date and cache mocks aren't affected.
+</Note>
+
+## Deployment Workflow
+
+Recommended workflow for production deployments:
+
+```bash
+# Clear old cache
+php artisan cache:clear
+
+# Cache data structures
+php artisan data:cache-structures
+
+# Cache other Laravel structures
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+## Viewing Cached Classes
+
+See which classes were cached:
+
+```bash
+php artisan data:cache-structures --show-classes
+```
+
+Output:
+
+```
+Caching data structures...
+████████████████████ 100%
+
+Cached 42 data classes
+
++----------------------------------+
+| Data Class                       |
++----------------------------------+
+| App\Data\UserData                |
+| App\Data\PostData                |
+| App\Data\CommentData             |
+| ...                              |
++----------------------------------+
+```
+
+## Performance Impact
+
+<CardGroup cols={2}>
+<Card title="Without Caching" icon="hourglass">
+Reflection analysis on every request
+
+~5-10ms per data class (depending on complexity)
+</Card>
+
+<Card title="With Caching" icon="bolt">
+Pre-analyzed structures from cache
+
+~0.1-0.5ms per data class
+</Card>
+</CardGroup>
+
+<Note>
+For applications with 50+ data objects, caching can reduce data-related overhead by 90%+.
+</Note>

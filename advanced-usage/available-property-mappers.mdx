@@ -1,0 +1,125 @@
+---
+title: Available Property Mappers
+description: Use built-in mappers to automatically transform property names between different naming conventions
+---
+
+Property mappers automatically transform property names between different naming conventions when creating and transforming data objects.
+
+## Available Mappers
+
+The package provides seven built-in mappers:
+
+```php
+use Spatie\LaravelData\Mappers\CamelCaseMapper;
+use Spatie\LaravelData\Mappers\SnakeCaseMapper;
+use Spatie\LaravelData\Mappers\KebabCaseMapper;
+use Spatie\LaravelData\Mappers\ProvidedNameMapper;
+use Spatie\LaravelData\Mappers\StudlyCaseMapper;
+use Spatie\LaravelData\Mappers\LowerCaseMapper;
+use Spatie\LaravelData\Mappers\UpperCaseMapper;
+```
+
+## Usage Example
+
+```php
+class ContractData extends Data
+{
+    public function __construct(
+        #[MapName(CamelCaseMapper::class)]
+        public string $name,
+        #[MapName(SnakeCaseMapper::class)]
+        public string $recordCompany,
+        #[MapName(KebabCaseMapper::class)]
+        public string $vatNumber,
+        #[MapName(new ProvidedNameMapper('country field'))]
+        public string $country,
+        #[MapName(StudlyCaseMapper::class)]
+        public string $cityName,
+        #[MapName(LowerCaseMapper::class)]
+        public string $addressLine1,
+        #[MapName(UpperCaseMapper::class)]
+        public string $addressLine2,
+    ) {
+    }
+}
+```
+
+## Creating from Mapped Names
+
+```php
+ContractData::from([
+    'name' => 'Rick Astley',
+    'record_company' => 'RCA Records',
+    'vat-number' => 'BE0123456789',
+    'country field' => 'Belgium',
+    'CityName' => 'Antwerp',
+    'addressline1' => 'some address line 1',
+    'ADDRESSLINE2' => 'some address line 2',
+]);
+```
+
+## Transformation Output
+
+When transforming, the mapped names are used:
+
+```json
+{
+    "name" : "Rick Astley",
+    "record_company" : "RCA Records",
+    "vat-number" : "BE0123456789",
+    "country field" : "Belgium",
+    "CityName" : "Antwerp",
+    "addressline1" : "some address line 1",
+    "ADDRESSLINE2" : "some address line 2"
+}
+```
+
+## Mapper Details
+
+<Accordion title="CamelCaseMapper">
+Transforms property names to camelCase:
+- `propertyName` → `propertyName`
+- `PropertyName` → `propertyName`
+- `property_name` → `propertyName`
+</Accordion>
+
+<Accordion title="SnakeCaseMapper">
+Transforms property names to snake_case:
+- `propertyName` → `property_name`
+- `PropertyName` → `property_name`
+- `property-name` → `property_name`
+</Accordion>
+
+<Accordion title="KebabCaseMapper">
+Transforms property names to kebab-case:
+- `propertyName` → `property-name`
+- `PropertyName` → `property-name`
+- `property_name` → `property-name`
+</Accordion>
+
+<Accordion title="StudlyCaseMapper">
+Transforms property names to StudlyCase (PascalCase):
+- `propertyName` → `PropertyName`
+- `property_name` → `PropertyName`
+- `property-name` → `PropertyName`
+</Accordion>
+
+<Accordion title="LowerCaseMapper">
+Transforms property names to lowercase:
+- `PropertyName` → `propertyname`
+- `PROPERTYNAME` → `propertyname`
+</Accordion>
+
+<Accordion title="UpperCaseMapper">
+Transforms property names to UPPERCASE:
+- `propertyName` → `PROPERTYNAME`
+- `PropertyName` → `PROPERTYNAME`
+</Accordion>
+
+<Accordion title="ProvidedNameMapper">
+Maps to a specific name you provide:
+```php
+#[MapName(new ProvidedNameMapper('custom_field_name'))]
+public string $property;
+```
+</Accordion>

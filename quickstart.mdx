@@ -1,80 +1,413 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Build your first Laravel Data object in minutes with this step-by-step guide
 ---
 
-## Get started in three steps
+This quickstart guides you through creating a blog application with type-safe data objects. You'll learn the core functionality of Laravel Data by building real examples.
 
-Get your documentation site running locally and make your first customization.
+<Info>
+  Make sure you've [installed Laravel Data](/installation) before starting.
+</Info>
 
-### Step 1: Set up your local environment
+## Creating your first data object
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Create the PostData class">
+    Let's create a data object for blog posts. A post has a title, content, status, and publication date:
 
-### Step 2: Deploy your changes
+    ```php
+    use Spatie\LaravelData\Data;
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    class PostData extends Data
+    {
+        public function __construct(
+            public string $title,
+            public string $content,
+            public PostStatus $status,
+            public ?CarbonImmutable $published_at
+        ) {
+        }
+    }
+    ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    <Tip>
+      Store data objects in `app/Data/PostData.php` or use `php artisan make:data Post` to generate the file automatically.
+    </Tip>
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Define the PostStatus enum">
+    Create a native PHP enum for the post status:
 
-### Step 3: Go live
+    ```php
+    enum PostStatus: string
+    {
+        case draft = 'draft';
+        case published = 'published';
+        case archived = 'archived';
+    }
+    ```
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Create a PostData instance">
+    You can create data objects like regular PHP objects:
+
+    ```php
+    $post = new PostData(
+        'Hello laravel-data',
+        'This is an introduction post for the new package',
+        PostStatus::published,
+        CarbonImmutable::now()
+    );
+    ```
+
+    Or use the powerful `from` method to create from various sources:
+
+    <CodeGroup>
+    ```php From array
+    $post = PostData::from([
+        'title' => 'Hello laravel-data',
+        'content' => 'This is an introduction post for the new package',
+        'status' => PostStatus::published,
+        'published_at' => CarbonImmutable::now(),
+    ]);
+    ```
+
+    ```php From model
+    $post = PostData::from(Post::findOrFail($id));
+    ```
+
+    ```php From JSON
+    $post = PostData::from(json_decode($jsonString, true));
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Using data objects in controllers
+
+<Steps>
+  <Step title="Without Laravel Data (the old way)">
+    Here's a typical controller without Laravel Data:
+
+    ```php
+    class PostController
+    {
+        public function store(Request $request)
+        {
+            $request->validate([
+                'title' => ['required', 'string'],
+                'content' => ['required', 'string'],
+                'status' => ['required', new Enum(PostStatus::class)],
+                'published_at' => ['nullable', 'date'],
+            ]);
+
+            $postData = new PostData(
+                title: $request->input('title'),
+                content: $request->input('content'),
+                status: $request->enum('status', PostStatus::class),
+                published_at: $request->has('published_at')
+                    ? CarbonImmutable::createFromFormat(DATE_ATOM, $request->input('published_at'))
+                    : null,
+            );
+
+            Post::create($postData->toArray());
+
+            return redirect()->back();
+        }
+    }
+    ```
+
+    That's a lot of boilerplate code!
+  </Step>
+
+  <Step title="With Laravel Data (the new way)">
+    Laravel Data reduces this to just a few lines:
+
+    ```php
+    class PostController
+    {
+        public function store(PostData $postData)
+        {
+            Post::create($postData->toArray());
+
+            return redirect()->back();
+        }
+    }
+    ```
+
+    Here's what happens automatically:
+    1. Laravel boots and routes to `PostController`
+    2. `PostData` generates validation rules from property types
+    3. The request is validated automatically
+    4. The `PostData` object is created from validated request data
+    5. You receive a fully validated, type-safe data object
+  </Step>
+
+  <Step title="Inspect auto-generated validation rules">
+    You can view the rules Laravel Data generates:
+
+    ```php
+    dd(PostData::getValidationRules($request->toArray()));
+    ```
+
+    Output:
+
+    ```php
+    [
+        "title" => ["required", "string"],
+        "content" => ["required", "string"],
+        "status" => ["required", Illuminate\Validation\Rules\Enum],
+        "published_at" => ["nullable"]
+    ]
+    ```
+
+    <Info>
+      Laravel Data automatically infers rules based on property types:
+      - `required` for non-nullable properties
+      - `nullable` for nullable properties
+      - `string`, `numeric`, `boolean`, `array` based on type hints
+      - `enum` for native enums
+    </Info>
+  </Step>
+</Steps>
+
+## Adding validation attributes
+
+Enhance auto-generated rules with validation attributes:
+
+```php
+use Spatie\LaravelData\Attributes\Validation\Date;
+
+class PostData extends Data
+{
+    public function __construct(
+        public string $title,
+        public string $content,
+        public PostStatus $status,
+        #[Date]
+        public ?CarbonImmutable $published_at
+    ) {
+    }
+}
+```
+
+Now the validation rules include the `date` rule:
+
+```php
+[
+    "title" => ["required", "string"],
+    "content" => ["required", "string"],
+    "status" => ["required", Illuminate\Validation\Rules\Enum],
+    "published_at" => ["nullable", "date"] // 👈 Date rule added
+]
+```
+
+<Tip>
+  Laravel Data provides [dozens of validation attributes](/advanced-usage/validation-attributes) like `Email`, `Max`, `Min`, `Url`, and more.
+</Tip>
+
+## Transforming data objects
+
+Data objects can be easily transformed into arrays or JSON:
+
+<CodeGroup>
+```php To array
+$postData->toArray();
+
+// Result:
+[
+    "title" => "Hello laravel-data",
+    "content" => "This is an introduction post",
+    "status" => "published",
+    "published_at" => "2020-05-16T00:00:00+00:00"
+]
+```
+
+```php To JSON
+return $postData; // In a controller
+
+// Result:
+{
+    "title": "Hello laravel-data",
+    "content": "This is an introduction post",
+    "status": "published",
+    "published_at": "2020-05-16T00:00:00+00:00"
+}
+```
+
+```php Keep complex types
+$postData->all();
+
+// Result:
+[
+    "title" => "Hello laravel-data",
+    "status" => App\Enums\PostStatus,
+    "published_at" => Carbon\CarbonImmutable
+]
+```
+</CodeGroup>
+
+## Nesting data objects
+
+Create complex data structures by nesting data objects:
+
+```php
+class AuthorData extends Data
+{
+    /**
+     * @param array<int, PostData> $posts
+     */
+    public function __construct(
+        public string $name,
+        public array $posts
+    ) {
+    }
+}
+```
+
+Create nested data objects from arrays:
+
+```php
+$author = AuthorData::from([
+    'name' => 'Ruben Van Assche',
+    'posts' => [
+        [
+            'title' => 'Hello laravel-data',
+            'content' => 'Introduction post',
+            'status' => PostStatus::published,
+        ],
+        [
+            'title' => 'What is a data object',
+            'content' => 'How does it work',
+            'status' => PostStatus::draft,
+        ],
+    ],
+]);
+```
+
+<Info>
+  The package automatically converts nested arrays into `PostData` objects based on the docblock type hint.
+</Info>
+
+## Working with lazy properties
+
+Lazy properties are only included when explicitly requested, perfect for optimizing API responses:
+
+```php
+use Spatie\LaravelData\Lazy;
+
+class AuthorData extends Data
+{
+    public function __construct(
+        public string $name,
+        public Collection|Lazy $posts
+    ) {
+    }
+
+    public static function fromModel(Author $author): self
+    {
+        return new self(
+            $author->name,
+            Lazy::create(fn() => PostData::collect($author->posts))
+        );
+    }
+}
+```
+
+Control what's included in the output:
+
+<CodeGroup>
+```php Without posts
+$author = AuthorData::from($authorModel);
+return $author;
+
+// Result:
+{
+    "name": "Ruben Van Assche"
+}
+```
+
+```php With posts
+$author = AuthorData::from($authorModel);
+return $author->include('posts');
+
+// Result:
+{
+    "name": "Ruben Van Assche",
+    "posts": [
+        {"title": "Hello laravel-data", ...},
+        {"title": "What is a data object", ...}
+    ]
+}
+```
+
+```php Nested includes
+return $author->include('posts.{title,status}');
+
+// Result:
+{
+    "name": "Ruben Van Assche",
+    "posts": [
+        {"title": "Hello laravel-data", "status": "published"},
+        {"title": "What is a data object", "status": "draft"}
+    ]
+}
+```
+</CodeGroup>
+
+## Generating blueprints
+
+Create empty data structures for forms:
+
+```php
+PostData::empty();
+
+// Result:
+[
+    'title' => null,
+    'content' => null,
+    'status' => null,
+    'published_at' => null,
+]
+```
+
+With default values:
+
+```php
+PostData::empty([
+    'status' => PostStatus::draft
+]);
+
+// Result:
+[
+    'title' => null,
+    'content' => null,
+    'status' => 'draft',
+    'published_at' => null,
+]
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+You've learned the basics! Laravel Data can do much more:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Casts" icon="arrows-rotate" href="/as-a-dto/casts">
+    Convert simple types to complex types
+  </Card>
+  <Card title="Transformers" icon="code" href="/as-a-resource/transformers">
+    Convert complex types to simple types
+  </Card>
+  <Card title="Validation" icon="shield-check" href="/validation/introduction">
+    Deep dive into validation features
+  </Card>
+  <Card title="Collections" icon="layer-group" href="/as-a-dto/collections">
+    Work with collections of data objects
+  </Card>
+  <Card title="Eloquent Casting" icon="database" href="/advanced-usage/eloquent-casting">
+    Cast data objects in Eloquent models
+  </Card>
+  <Card title="TypeScript" icon="js" href="/advanced-usage/typescript">
+    Generate TypeScript definitions
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

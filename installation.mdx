@@ -1,0 +1,175 @@
+---
+title: Installation
+description: Install Laravel Data via Composer and configure the package
+---
+
+## Installation via Composer
+
+You can install Laravel Data using Composer:
+
+```bash
+composer require spatie/laravel-data
+```
+
+<Info>
+  Laravel's package auto-discovery will automatically register the service provider, so no manual registration is needed.
+</Info>
+
+## Publishing the configuration
+
+The package works out of the box with sensible defaults. However, you can optionally publish the configuration file to customize behavior:
+
+```bash
+php artisan vendor:publish --provider="Spatie\LaravelData\LaravelDataServiceProvider" --tag="data-config"
+```
+
+This creates a `config/data.php` file in your application.
+
+## Configuration overview
+
+The published configuration file allows you to customize:
+
+<AccordionGroup>
+  <Accordion title="Date handling">
+    Configure date formats and timezones for date transformations:
+    
+    ```php
+    'date_format' => DATE_ATOM,
+    'date_timezone' => null,
+    ```
+  </Accordion>
+
+  <Accordion title="Global transformers">
+    Define transformers that convert complex types to simple types:
+    
+    ```php
+    'transformers' => [
+        DateTimeInterface::class => \Spatie\LaravelData\Transformers\DateTimeInterfaceTransformer::class,
+        \Illuminate\Contracts\Support\Arrayable::class => \Spatie\LaravelData\Transformers\ArrayableTransformer::class,
+        BackedEnum::class => Spatie\LaravelData\Transformers\EnumTransformer::class,
+    ],
+    ```
+  </Accordion>
+
+  <Accordion title="Global casts">
+    Define casts that convert simple types to complex types:
+    
+    ```php
+    'casts' => [
+        DateTimeInterface::class => Spatie\LaravelData\Casts\DateTimeInterfaceCast::class,
+        BackedEnum::class => Spatie\LaravelData\Casts\EnumCast::class,
+    ],
+    ```
+  </Accordion>
+
+  <Accordion title="Rule inferrers">
+    Configure how validation rules are automatically inferred from property types:
+    
+    ```php
+    'rule_inferrers' => [
+        Spatie\LaravelData\RuleInferrers\SometimesRuleInferrer::class,
+        Spatie\LaravelData\RuleInferrers\NullableRuleInferrer::class,
+        Spatie\LaravelData\RuleInferrers\RequiredRuleInferrer::class,
+        Spatie\LaravelData\RuleInferrers\BuiltInTypesRuleInferrer::class,
+        Spatie\LaravelData\RuleInferrers\AttributesRuleInferrer::class,
+    ],
+    ```
+  </Accordion>
+
+  <Accordion title="Structure caching">
+    Enable caching for improved performance in production:
+    
+    ```php
+    'structure_caching' => [
+        'enabled' => true,
+        'directories' => [app_path('Data')],
+        'cache' => [
+            'store' => env('CACHE_STORE', env('CACHE_DRIVER', 'file')),
+            'prefix' => 'laravel-data',
+            'duration' => null,
+        ],
+    ],
+    ```
+  </Accordion>
+
+  <Accordion title="Validation strategy">
+    Control when data objects are validated:
+    
+    ```php
+    'validation_strategy' => \Spatie\LaravelData\Support\Creation\ValidationStrategy::OnlyRequests->value,
+    ```
+    
+    Options:
+    - `OnlyRequests`: Validate only when creating from requests (default)
+    - `Always`: Validate on every creation
+    - `Disabled`: Never validate automatically
+  </Accordion>
+
+  <Accordion title="Make command defaults">
+    Configure the `make:data` Artisan command:
+    
+    ```php
+    'commands' => [
+        'make' => [
+            'namespace' => 'Data',
+            'suffix' => 'Data',
+        ],
+    ],
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Creating data classes
+
+You can quickly generate a data class using the Artisan command:
+
+```bash
+php artisan make:data Post
+```
+
+This creates `app/Data/PostData.php`:
+
+```php
+<?php
+
+namespace App\Data;
+
+use Spatie\LaravelData\Data;
+
+class PostData extends Data
+{
+    //
+}
+```
+
+<Tip>
+  By default, data classes are created in the `app/Data` directory with a `Data` suffix. You can customize this in the configuration file or via command options.
+</Tip>
+
+## Performance optimization
+
+For production environments, ensure structure caching is enabled in `config/data.php`:
+
+```php
+'structure_caching' => [
+    'enabled' => true,
+    'directories' => [app_path('Data')],
+],
+```
+
+This caches reflection analysis of data objects, significantly improving performance.
+
+<Warning>
+  If you add data classes outside of `app/Data`, add those directories to the `structure_caching.directories` array.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Build your first data object
+  </Card>
+  <Card title="Requirements" icon="list-check" href="/requirements">
+    Check system requirements
+  </Card>
+</CardGroup>

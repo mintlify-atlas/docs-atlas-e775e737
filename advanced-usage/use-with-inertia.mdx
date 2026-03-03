@@ -1,0 +1,140 @@
+---
+title: Use with Inertia
+description: Integrate Laravel Data with Inertia.js for modern single-page applications
+---
+
+> Inertia.js lets you quickly build modern single-page React, Vue, and Svelte apps using classic server-side routing and controllers.
+
+Laravel Data works excellently with [Inertia](https://inertiajs.com).
+
+## Basic Usage
+
+Pass data objects directly to Inertia responses:
+
+```php
+return Inertia::render('Song', SongsData::from($song));
+```
+
+## Lazy Properties
+
+This package supports [lazy properties](/as-a-resource/lazy-properties), which align perfectly with Inertia's [lazy data evaluation](https://inertiajs.com/partial-reloads#lazy-data-evaluation) and [deferred props](https://inertiajs.com/deferred-props).
+
+### Three Types of Lazy Properties
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public Lazy|string $title,
+        public Lazy|string $artist,
+        public Lazy|string $lyrics,
+    ) {
+    }
+
+    public static function fromModel(Song $song): self
+    {
+        return new self(
+            Lazy::inertia(fn() => $song->title),
+            Lazy::closure(fn() => $song->artist),
+            Lazy::inertiaDeferred(fn() => $song->lyrics)
+        );
+    }
+}
+```
+
+- **Lazy::inertia()** - Never included on first visit, optionally included on partial reloads
+- **Lazy::closure()** - Always included on first visit, optionally included on partial reloads
+- **Lazy::inertiaDeferred()** - Included when ready, optionally included on partial reloads
+
+### Including Properties in JavaScript
+
+```js
+router.reload(url, {
+    only: ['title'],
+});
+```
+
+## Deferred Property Groups
+
+Group deferred properties to load them together:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public Lazy|string $title,
+        public Lazy|string $artist,
+        public Lazy|string $lyrics,
+    ) {
+    }
+    
+    public static function fromModel(Song $song): self
+    {
+        return new self(
+            Lazy::inertiaDeferred(fn() => $song->title),
+            Lazy::inertiaDeferred(fn() => $song->artist, 'details'),
+            Lazy::inertiaDeferred(fn() => $song->lyrics, 'details')
+        );
+    }
+}
+```
+
+In this example, `artist` and `lyrics` are grouped together as `'details'` and will load simultaneously.
+
+## Auto Lazy Inertia Properties
+
+Automatically make properties lazy using attributes:
+
+```php
+use Spatie\LaravelData\Attributes\AutoClosureLazy;
+use Spatie\LaravelData\Attributes\AutoInertiaLazy;
+use Spatie\LaravelData\Attributes\AutoInertiaDeferred;
+
+class SongData extends Data
+{
+    public function __construct(
+        #[AutoInertiaLazy]
+        public Lazy|string $title,
+        #[AutoClosureLazy]
+        public Lazy|string $artist,
+        #[AutoInertiaDeferred]
+        public Lazy|string $lyrics,
+    ) {
+    }
+}
+```
+
+### Class-Level Attributes
+
+Apply to all properties at once:
+
+```php
+#[AutoInertiaLazy]
+class SongData extends Data
+{
+    public function __construct(
+        public Lazy|string $title,
+        public Lazy|string $artist,
+    ) {
+    }
+}
+```
+
+### Deferred Groups with Attributes
+
+Specify groups for `AutoInertiaDeferred`:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        #[AutoInertiaDeferred()]
+        public Lazy|string $title,
+        #[AutoInertiaDeferred('details')]
+        public Lazy|string $artist,
+        #[AutoInertiaDeferred('details')]
+        public Lazy|string $lyrics,
+    ) {
+    }
+}
+```

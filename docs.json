@@ -1,122 +1,113 @@
 {
   "$schema": "https://mintlify.com/docs.json",
+  "name": "Laravel Data",
   "theme": "mint",
-  "name": "Mint Starter Kit",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
-  },
-  "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "primary": "#2563eb",
+    "light": "#3b82f6",
+    "dark": "#1e40af"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
     "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "type": "github",
+      "href": "https://github.com/spatie/laravel-data"
     }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/spatie/laravel-data"
     }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "requirements"
+            ]
+          },
+          {
+            "group": "As a Data Transfer Object",
+            "pages": [
+              "as-a-dto/creating-a-data-object",
+              "as-a-dto/request-to-data-object",
+              "as-a-dto/model-to-data-object",
+              "as-a-dto/collections",
+              "as-a-dto/nesting",
+              "as-a-dto/optional-properties",
+              "as-a-dto/defaults",
+              "as-a-dto/casts",
+              "as-a-dto/mapping-property-names",
+              "as-a-dto/computed",
+              "as-a-dto/factories",
+              "as-a-dto/injecting-property-values",
+              "as-a-dto/abstract-data"
+            ]
+          },
+          {
+            "group": "Validation",
+            "pages": [
+              "validation/introduction",
+              "validation/auto-rule-inferring",
+              "validation/using-validation-attributes",
+              "validation/manual-rules",
+              "validation/nesting-data",
+              "validation/working-with-the-validator",
+              "validation/skipping-validation"
+            ]
+          },
+          {
+            "group": "As a Resource",
+            "pages": [
+              "as-a-resource/from-data-to-resource",
+              "as-a-resource/from-data-to-array",
+              "as-a-resource/lazy-properties",
+              "as-a-resource/transformers",
+              "as-a-resource/mapping-property-names",
+              "as-a-resource/appending-properties",
+              "as-a-resource/wrapping"
+            ]
+          },
+          {
+            "group": "Advanced Usage",
+            "pages": [
+              "advanced-usage/eloquent-casting",
+              "advanced-usage/typescript",
+              "advanced-usage/use-with-livewire",
+              "advanced-usage/use-with-inertia",
+              "advanced-usage/creating-a-cast",
+              "advanced-usage/creating-a-transformer",
+              "advanced-usage/creating-a-rule-inferrer",
+              "advanced-usage/normalizers",
+              "advanced-usage/pipeline",
+              "advanced-usage/mapping-rules",
+              "advanced-usage/available-property-mappers",
+              "advanced-usage/working-with-dates",
+              "advanced-usage/validation-attributes",
+              "advanced-usage/traits-and-interfaces",
+              "advanced-usage/get-data-from-a-class-quickly",
+              "advanced-usage/internal-structures",
+              "advanced-usage/performance",
+              "advanced-usage/commands",
+              "advanced-usage/in-packages"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "third-party-packages",
+              "changelog",
+              "questions-issues"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

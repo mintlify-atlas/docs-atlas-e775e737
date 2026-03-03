@@ -1,0 +1,317 @@
+---
+title: Lazy Properties
+description: Control which properties are included in your API resources using lazy evaluation
+---
+
+Sometimes you don't want all properties included when transforming a data object. With lazy properties, you can include properties only when needed:
+
+```php
+class AlbumData extends Data
+{
+    /**
+    * @param Lazy|Collection<int, SongData> $songs
+    */
+    public function __construct(
+        public string $title,
+        public Lazy|Collection $songs,
+    ) {
+    }
+    
+    public static function fromModel(Album $album): self
+    {
+        return new self(
+            $album->title,
+            Lazy::create(fn() => SongData::collect($album->songs))
+        );
+    }
+}
+```
+
+The `songs` key won't be included when transforming:
+
+```php
+AlbumData::from(Album::first())->toArray();
+// ['title' => 'Together Forever']
+```
+
+## Including Lazy Properties
+
+Include the property explicitly:
+
+```php
+AlbumData::from(Album::first())->include('songs');
+```
+
+### Nested Includes
+
+You can nest includes for properties within data objects:
+
+```php
+AlbumData::from(Album::first())->include('songs.name', 'songs.artist');
+```
+
+Or combine includes:
+
+```php
+AlbumData::from(Album::first())->include('songs.{name, artist}');
+```
+
+Include all properties:
+
+```php
+AlbumData::from(Album::first())->include('songs.*');
+```
+
+## Types of Lazy Properties
+
+### Basic Lazy
+
+Must be explicitly included:
+
+```php
+Lazy::create(fn() => SongData::collect($album->songs));
+```
+
+### Conditional Lazy
+
+Only included when a condition is true:
+
+```php
+Lazy::when(fn() => $this->is_admin, fn() => SongData::collect($album->songs));
+```
+
+### Relational Lazy
+
+Only included when a relation is loaded:
+
+```php
+Lazy::whenLoaded('songs', $album, fn() => SongData::collect($album->songs));
+```
+
+### Default Included
+
+Lazy property included by default:
+
+```php
+Lazy::create(fn() => SongData::collect($album->songs))->defaultIncluded();
+```
+
+Exclude it explicitly:
+
+```php
+AlbumData::create(Album::first())->exclude('songs');
+```
+
+## Auto Lazy
+
+Reduce boilerplate with auto lazy properties:
+
+<Tabs>
+  <Tab title="Without Auto Lazy">
+    ```php
+    class UserData extends Data
+    {
+        public function __construct(
+            public string $title,
+            public Lazy|SongData $favorite_song,
+        ) {
+        }
+
+        public static function fromModel(User $user): self
+        {
+            return new self(
+                $user->title,
+                Lazy::create(fn() => SongData::from($user->favorite_song))
+            );
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="With Auto Lazy">
+    ```php
+    #[AutoLazy]
+    class UserData extends Data
+    {
+        public function __construct(
+            public string $title,
+            public Lazy|SongData $favorite_song,
+        ) {
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Property Level Auto Lazy
+
+Apply auto lazy to specific properties:
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[AutoLazy]
+        public Lazy|SongData $favorite_song,
+    ) {
+    }
+}
+```
+
+### Auto Lazy with Model Relations
+
+Automatically create lazy properties for model relations:
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[AutoWhenLoadedLazy]
+        public Lazy|SongData $favoriteSong,
+    ) {
+    }
+}
+```
+
+Specify the relation name if it differs:
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[AutoWhenLoadedLazy('favoriteSong')]
+        public Lazy|SongData $favorite_song,
+    ) {
+    }
+}
+```
+
+## Only and Except
+
+Completely remove properties from the response:
+
+```php
+AlbumData::from(Album::first())->only('songs'); // only show `songs`
+AlbumData::from(Album::first())->except('songs'); // show everything except `songs`
+```
+
+Multiple keys:
+
+```php
+AlbumData::from(Album::first())->only('songs.name', 'songs.artist');
+AlbumData::from(Album::first())->except('songs.name', 'songs.artist');
+```
+
+<Note>
+`only` and `except` always take precedence over `include` and `exclude`.
+</Note>
+
+## Conditional Methods
+
+Add includes/excludes based on conditions:
+
+```php
+AlbumData::from(Album::first())->includeWhen('songs', auth()->user()->isAdmin);
+AlbumData::from(Album::first())->excludeWhen('songs', auth()->user()->isAdmin);
+AlbumData::from(Album::first())->onlyWhen('songs', auth()->user()->isAdmin);
+AlbumData::from(Album::first())->exceptWhen('songs', auth()->user()->isAdmin);
+```
+
+Using data object values:
+
+```php
+AlbumData::from(Album::first())->includeWhen('songs', fn(AlbumData $data) => count($data->songs) > 0);
+```
+
+## Class-Level Includes
+
+Define includes on the class:
+
+```php
+class AlbumData extends Data
+{
+    public function includeProperties(): array
+    {
+        return [
+            'songs' => $this->title === 'Together Forever',
+        ];
+    }
+}
+```
+
+Other methods:
+- `excludeProperties()` for excludes
+- `exceptProperties()` for except
+- `onlyProperties()` for only
+
+## Query String Includes
+
+Allow includes via URL query strings:
+
+```php
+class UserData extends Data
+{
+    public static function allowedRequestIncludes(): ?array
+    {
+        return ['favorite_song'];
+    }
+}
+```
+
+Request:
+```
+https://spatie.be/my-account?include=favorite_song
+```
+
+Multiple properties:
+```
+https://spatie.be/my-account?include=favorite_song,favorite_movie
+```
+
+Or using array input:
+```
+https://spatie.be/my-account?include[]=favorite_song&include[]=favorite_movie
+```
+
+### Allow All Includes
+
+Return `null` to allow all properties:
+
+```php
+public static function allowedRequestIncludes(): ?array
+{
+    return null;
+}
+```
+
+### Other Operations
+
+- `allowedRequestExcludes()` with `exclude` query parameter
+- `allowedRequestExcept()` with `except` query parameter  
+- `allowedRequestOnly()` with `only` query parameter
+
+## Mutability
+
+Includes/excludes only affect the data object once:
+
+```php
+AlbumData::from(Album::first())->include('songs')->toArray(); // includes songs
+AlbumData::from(Album::first())->toArray(); // does not include songs
+```
+
+For permanent includes, use property methods or permanent methods:
+
+```php
+AlbumData::from(Album::first())->includePermanently('songs');
+AlbumData::from(Album::first())->excludePermanently('songs');
+AlbumData::from(Album::first())->onlyPermanently('songs');
+AlbumData::from(Album::first())->exceptPermanently('songs');
+```
+
+Or with conditionals:
+
+```php
+AlbumData::from(Album::first())->includeWhen('songs', fn($data) => count($data->songs) > 0, permanent: true);
+```

@@ -1,0 +1,136 @@
+---
+title: From Data to Array
+description: Transform Laravel Data objects into arrays and JSON
+---
+
+A data object can automatically be transformed into an array:
+
+```php
+SongData::from(Song::first())->toArray();
+```
+
+Which outputs:
+
+```php
+[
+    'name' => 'Never gonna give you up',
+    'artist' => 'Rick Astley'
+]
+```
+
+<Note>
+By default, `toArray` recursively transforms all properties. Nested data objects, collections, and complex types like `Carbon`, `DateTime`, `Enums` will be transformed.
+</Note>
+
+## Without Transforming Properties
+
+If you only want to transform a data object to an array without transforming the properties:
+
+```php
+SongData::from(Song::first())->all();
+```
+
+## To JSON
+
+You can also manually transform a data object to JSON:
+
+```php
+SongData::from(Song::first())->toJson();
+```
+
+## Using Collections
+
+Create a collection of data objects:
+
+```php
+SongData::collect(Song::all());
+```
+
+Transform the collection to an array:
+
+```php
+SongData::collect(Song::all())->toArray();
+```
+
+Which outputs:
+
+```php
+[
+    [
+        "name" => "Never Gonna Give You Up",
+        "artist" => "Rick Astley"
+    ],
+    [
+        "name" => "Giving Up on Love",
+        "artist" => "Rick Astley"
+    ]
+]
+```
+
+## Nesting Data Objects
+
+You can nest data objects within other data objects:
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        public string $title,
+        public string $email,
+        public SongData $favorite_song,
+    ) {
+    }
+    
+    public static function fromModel(User $user): self
+    {
+        return new self(
+            $user->title,
+            $user->email,
+            SongData::from($user->favorite_song)
+        );
+    }
+}
+```
+
+When transformed to an array:
+
+```php
+[
+    "name" => "Ruben",
+    "email" => "ruben@spatie.be",
+    "favorite_song" => [
+        "name" => "Never Gonna Give You Up",
+        "artist" => "Rick Astley"
+    ]
+]
+```
+
+## Nesting Collections
+
+You can also nest a collection of data objects:
+
+```php
+class AlbumData extends Data
+{
+    /**
+    * @param Collection<int, SongData> $songs
+    */
+    public function __construct(
+        public string $title,
+        public array $songs,
+    ) {
+    }
+
+    public static function fromModel(Album $album): self
+    {
+        return new self(
+            $album->title,
+            SongData::collect($album->songs)
+        );
+    }
+}
+```
+
+<Warning>
+Always type collections of data objects by annotation or the `DataCollectionOf` attribute. This is essential for correct transformation.
+</Warning>

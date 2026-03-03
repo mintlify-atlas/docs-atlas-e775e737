@@ -1,0 +1,147 @@
+---
+title: Creating a Cast
+description: Build custom casts to transform simple values into complex types
+---
+
+Casts take simple values and transform them into complex types. For example, `16-05-1994T00:00:00+00` could be cast into a `Carbon` object.
+
+## Cast Interface
+
+Implement the `Cast` interface:
+
+```php
+interface Cast
+{
+    public function cast(DataProperty $property, mixed $value, array $properties, CreationContext $context): mixed;
+}
+```
+
+### Parameters
+
+- **property** - `DataProperty` object representing the property being cast ([read more](/advanced-usage/internal-structures))
+- **value** - The value to be cast
+- **properties** - Array of current properties for creating the data object
+- **creationContext** - Context containing:
+  - `dataClass` - The data class being created
+  - `validationStrategy` - The validation strategy in use
+  - `mapPropertyNames` - Whether property names should be mapped
+  - `disableMagicalCreation` - Whether to use magical creation methods
+  - `ignoredMagicalMethods` - Which magical methods are ignored
+  - `casts` - Collection of global casts
+
+### Return Value
+
+Return the casted value, or an `Uncastable` object if the cast cannot be performed.
+
+## Handling Null
+
+<Note>
+Casts never receive `null` values. The package keeps `null` as `null` to avoid creating values out of thin air. Use magic methods if you need to replace `null` values.
+</Note>
+
+## Castables
+
+Allow value objects to define their own casting logic:
+
+```php
+class ForgotPasswordRequest extends Data
+{
+    public function __construct(
+        #[WithCastable(Email::class)]
+        public Email $email,
+    ) {
+    }
+}
+```
+
+### Castable with Arguments
+
+Pass arguments to the castable:
+
+```php
+class DuplicateEmailCheck extends Data
+{
+    public function __construct(
+        #[WithCastable(Email::class, normalize: true)]
+        public Email $email,
+    ) {
+    }
+}
+```
+
+### Castable Implementation
+
+Implement the `Castable` interface:
+
+```php
+<?php
+namespace Spatie\LaravelData\Tests\Fakes\Castables;
+
+use Spatie\LaravelData\Casts\Cast;
+use Spatie\LaravelData\Casts\Castable;
+use Spatie\LaravelData\Support\Creation\CreationContext;
+use Spatie\LaravelData\Support\DataProperty;
+
+class Email implements Castable
+{
+    public function __construct(public string $email) {
+
+    }
+
+    public static function dataCastUsing(...$arguments): Cast
+    {
+        return new class implements Cast {
+            public function cast(DataProperty $property, mixed $value, array $properties, CreationContext $context): mixed
+            {
+                return new Email($value);
+            }
+        };
+    }
+}
+```
+
+## Casting Iterable Values
+
+Cast items in arrays or Collections by implementing `IterableItemCast`:
+
+```php
+interface IterableItemCast
+{
+    public function castIterableItem(DataProperty $property, mixed $value, array $properties, CreationContext $context): mixed;
+}
+```
+
+The `castIterableItem` method is called for each item. Check `$property->type->iterableItemType` to get the target type.
+
+## Combining Casts and Transformers
+
+Create a class that both casts and transforms:
+
+```php
+class ToUpperCastAndTransformer implements Cast, Transformer
+{
+    public function cast(DataProperty $property, mixed $value, array $properties, CreationContext $context): string
+    {
+        return strtoupper($value);
+    }
+    
+    public function transform(DataProperty $property, mixed $value, TransformationContext $context): string
+    {
+        return strtoupper($value);
+    }
+}
+```
+
+Use with the `WithCastAndTransformer` attribute:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[WithCastAndTransformer(SomeCastAndTransformer::class)]
+        public string $artist,
+    ) {
+    }
+}
+```

@@ -1,0 +1,183 @@
+---
+title: Auto Rule Inferring
+description: Learn how Laravel Data automatically infers validation rules from property types
+---
+
+The package will automatically infer validation rules from the data object. For example, for the following data class:
+
+```php
+class ArtistData extends Data{
+    public function __construct(
+        public string $name,
+        public int $age,
+        public ?string $genre,
+    ) {
+    }
+}
+```
+
+The package will generate the following validation rules:
+
+```php
+[
+    'name' => ['required', 'string'],
+    'age' => ['required', 'integer'],
+    'genre' => ['nullable', 'string'],
+]
+```
+
+All these rules are inferred by `RuleInferrers`, special classes that will look at the types of properties and will add rules based upon that.
+
+## Configuring rule inferrers
+
+Rule inferrers are configured in the `data.php` config file:
+
+```php
+/*
+ * Rule inferrers can be configured here. They will automatically add
+ * validation rules to properties of a data object based upon
+ * the type of the property.
+ */
+'rule_inferrers' => [
+    Spatie\LaravelData\RuleInferrers\SometimesRuleInferrer::class,
+    Spatie\LaravelData\RuleInferrers\NullableRuleInferrer::class,
+    Spatie\LaravelData\RuleInferrers\RequiredRuleInferrer::class,
+    Spatie\LaravelData\RuleInferrers\BuiltInTypesRuleInferrer::class,
+    Spatie\LaravelData\RuleInferrers\AttributesRuleInferrer::class,
+],
+```
+
+By default, five rule inferrers are enabled:
+
+## Built-in rule inferrers
+
+### SometimesRuleInferrer
+
+Will add a `sometimes` rule when the property is optional.
+
+```php
+class ArtistData extends Data{
+    public function __construct(
+        public string $name,
+        public Optional|int $age,
+    ) {
+    }
+}
+
+// Rules: ['name' => ['required', 'string'], 'age' => ['sometimes', 'integer']]
+```
+
+### NullableRuleInferrer
+
+Will add a `nullable` rule when the property is nullable.
+
+```php
+class ArtistData extends Data{
+    public function __construct(
+        public string $name,
+        public ?string $genre,
+    ) {
+    }
+}
+
+// Rules: ['name' => ['required', 'string'], 'genre' => ['nullable', 'string']]
+```
+
+### RequiredRuleInferrer
+
+Will add a `required` rule when the property is not nullable.
+
+```php
+class ArtistData extends Data{
+    public function __construct(
+        public string $name,
+        public int $age,
+    ) {
+    }
+}
+
+// Rules: ['name' => ['required', 'string'], 'age' => ['required', 'integer']]
+```
+
+### BuiltInTypesRuleInferrer
+
+Will add rules which are based upon the built-in PHP types:
+
+- An `int` or `float` type will add the `numeric` rule
+- A `bool` type will add the `boolean` rule
+- A `string` type will add the `string` rule
+- An `array` type will add the `array` rule
+
+```php
+namespace Spatie\LaravelData\RuleInferrers;
+
+use BackedEnum;
+use Spatie\LaravelData\Attributes\Validation\ArrayType;
+use Spatie\LaravelData\Attributes\Validation\BooleanType;
+use Spatie\LaravelData\Attributes\Validation\Enum;
+use Spatie\LaravelData\Attributes\Validation\Numeric;
+use Spatie\LaravelData\Attributes\Validation\StringType;
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Validation\PropertyRules;
+use Spatie\LaravelData\Support\Validation\RequiringRule;
+use Spatie\LaravelData\Support\Validation\ValidationContext;
+
+class BuiltInTypesRuleInferrer implements RuleInferrer
+{
+    public function handle(
+        DataProperty $property,
+        PropertyRules $rules,
+        ValidationContext $context,
+    ): PropertyRules {
+        if ($property->type->type->acceptsType('int')) {
+            $rules->add(new Numeric());
+        }
+
+        if ($property->type->type->acceptsType('string')) {
+            $rules->add(new StringType());
+        }
+
+        if ($property->type->type->acceptsType('bool')) {
+            $rules->removeType(RequiringRule::class);
+
+            $rules->add(new BooleanType());
+        }
+
+        if ($property->type->type->acceptsType('float')) {
+            $rules->add(new Numeric());
+        }
+
+        if ($property->type->type->acceptsType('array')) {
+            $rules->add(new ArrayType());
+        }
+
+        if ($enumClass = $property->type->type->findAcceptedTypeForBaseType(BackedEnum::class)) {
+            $rules->add(new Enum($enumClass));
+        }
+
+        return $rules;
+    }
+}
+```
+
+### AttributesRuleInferrer
+
+Will make sure that rule attributes we described above will also add their rules.
+
+```php
+use Spatie\LaravelData\Attributes\Validation\Max;
+
+class ArtistData extends Data{
+    public function __construct(
+        #[Max(100)]
+        public string $name,
+    ) {
+    }
+}
+
+// Rules: ['name' => ['required', 'string', 'max:100']]
+```
+
+## Creating custom rule inferrers
+
+It is possible to write your own rule inferrers. You can find more information [here](/advanced-usage/creating-a-rule-inferrer).

@@ -1,0 +1,172 @@
+---
+title: TypeScript Transformation
+description: Automatically generate TypeScript definitions from your Laravel Data objects
+---
+
+Thanks to the [typescript-transformer](https://spatie.be/docs/typescript-transformer) package, you can automatically transform data objects into TypeScript definitions.
+
+## Example Transformation
+
+This PHP data object:
+
+```php
+class DataObject extends Data
+{
+    public function __construct(
+        public null|int $nullable,
+        public int $int,
+        public bool $bool,
+        public string $string,
+        public float $float,
+        /** @var string[] */
+        public array $array,
+        public Lazy|string $lazy,
+        public Optional|string $optional,
+        public SimpleData $simpleData,
+        /** @var \Spatie\LaravelData\Tests\Fakes\SimpleData[] */
+        public DataCollection $dataCollection,
+    )
+    {
+    }
+}
+```
+
+Transforms to this TypeScript type:
+
+```tsx
+{
+    nullable: number | null;
+    int: number;
+    bool: boolean;
+    string: string;
+    float: number;
+    array: Array<string>;
+    lazy? : string;
+    optional? : string;
+    simpleData: SimpleData;
+    dataCollection: Array<SimpleData>;
+}
+```
+
+## Installation
+
+Install the TypeScript transformer package:
+
+```bash
+composer require spatie/laravel-typescript-transformer
+```
+
+Publish the config file:
+
+```bash
+php artisan vendor:publish --tag=typescript-transformer-config
+```
+
+Add the transformer to `typescript-transformer.php`:
+
+```php
+'transformers' => [
+    Spatie\LaravelData\Support\TypeScriptTransformer\DataTypeScriptTransformer::class,
+    // Other transformers...
+],
+```
+
+<Note>
+If you're using the `DtoTransformer` provided by the package, put the `DataTypeScriptTransformer` before it.
+</Note>
+
+## Usage
+
+Annotate data objects you want to transform:
+
+```php
+/** @typescript */
+class SongData extends Data
+{
+    // ...
+}
+```
+
+Or use the attribute:
+
+```php
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+#[TypeScript]
+class SongData extends Data
+{
+    // ...
+}
+```
+
+Generate TypeScript definitions:
+
+```bash
+php artisan typescript:transform
+```
+
+## Transform All Data Objects
+
+Use the `DataTypeScriptCollector` to automatically transform all data objects:
+
+In `typescript-transformer.php`:
+
+```php
+'collectors' => [
+    Spatie\LaravelData\Support\TypeScriptTransformer\DataTypeScriptCollector::class,
+    // Other collectors...
+],
+```
+
+<Note>
+If you're using the `DefaultCollector`, put the `DataTypeScriptCollector` before it.
+</Note>
+
+## Optional Types
+
+Lazy and optional properties become optional in TypeScript:
+
+```php
+class DataObject extends Data
+{
+    public function __construct(
+        public Lazy|string $lazy,
+        public Optional|string $optional,
+    )
+    {
+    }
+}
+```
+
+Transforms to:
+
+```tsx
+{
+    lazy? : string;
+    optional? : string;
+}
+```
+
+### Optional Without Lazy/Optional Types
+
+Use the `Optional` attribute from typescript-transformer:
+
+```php
+use Spatie\TypeScriptTransformer\Attributes\Optional as TypeScriptOptional;
+
+class DataObject extends Data
+{
+    public function __construct(
+        #[TypeScriptOptional]
+        public int $id,
+        public string $someString,
+        public Optional|string $optional,
+    )
+    {
+    }
+}
+```
+
+<Note>
+Alias the TypeScript `Optional` attribute to avoid conflicts with Laravel Data's `Optional` type.
+</Note>

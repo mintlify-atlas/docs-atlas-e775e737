@@ -1,0 +1,104 @@
+---
+title: Mapping Property Names
+description: Transform property names between camelCase and snake_case in API responses
+---
+
+Sometimes you want to change the name of a property in the transformed payload. You can do this with attributes:
+
+```php
+class ContractData extends Data
+{
+    public function __construct(
+        public string $name,
+        #[MapOutputName('record_company')]
+        public string $recordCompany,
+    ) {
+    }
+}
+```
+
+Transformed output:
+
+```php
+[
+    'name' => 'Rick Astley',
+    'record_company' => 'RCA Records',
+]
+```
+
+## Class-Level Mapping
+
+Change all property names in a data object to snake_case:
+
+```php
+#[MapOutputName(SnakeCaseMapper::class)]
+class ContractData extends Data
+{
+    public function __construct(
+        public string $name,
+        public string $recordCompany,
+    ) {
+    }
+}
+```
+
+## Input and Output Mapping
+
+Use the `MapName` attribute to combine input and output property name mapping:
+
+```php
+#[MapName(SnakeCaseMapper::class)]
+class ContractData extends Data
+{
+    public function __construct(
+        public string $name,
+        public string $recordCompany,
+    ) {
+    }
+}
+```
+
+## Global Name Mapping
+
+Set a default name mapping strategy for all data objects in `config/data.php`:
+
+```php
+'name_mapping_strategy' => [
+    'input' => null,
+    'output' => SnakeCaseMapper::class,
+],
+```
+
+Now all data objects will automatically map property names to snake_case in the output:
+
+<Tabs>
+  <Tab title="Data Object">
+    ```php
+    $contract = new ContractData(
+        name: 'Rick Astley',
+        recordCompany: 'RCA Records',
+    );
+    ```
+  </Tab>
+  <Tab title="Transformed Output">
+    ```php
+    [
+        'name' => 'Rick Astley',
+        'record_company' => 'RCA Records',
+    ]
+    ```
+  </Tab>
+</Tabs>
+
+## Available Mappers
+
+The package includes several built-in mappers:
+
+- `SnakeCaseMapper` - Converts to snake_case
+- `CamelCaseMapper` - Converts to camelCase
+- `StudlyCaseMapper` - Converts to StudlyCase
+- `KebabCaseMapper` - Converts to kebab-case
+
+<Note>
+For a complete list of available property mappers, see the [advanced usage documentation](/advanced-usage/available-property-mappers).
+</Note>

@@ -1,0 +1,201 @@
+---
+title: In Packages
+description: Using Laravel Data in Laravel packages
+---
+
+When developing a Laravel package that uses Laravel Data, you'll need to ensure the package is properly configured for testing and usage.
+
+## Testing
+
+When testing a package, you may encounter config access issues, especially with the magic `from()` factory method which requires config access to resolve the factory instance.
+
+### Orchestra Testbench Setup
+
+Include the Laravel Data service provider in your package's TestCase:
+
+```php
+use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\LaravelData\LaravelDataServiceProvider;
+
+class TestCase extends Orchestra
+{
+    protected function getPackageProviders($app)
+    {
+        return [
+            LaravelDataServiceProvider::class,
+            // Register your package's service provider
+            YourPackageServiceProvider::class,
+        ];
+    }
+}
+```
+
+### Complete Test Example
+
+```php
+use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\LaravelData\LaravelDataServiceProvider;
+use YourPackage\YourPackageServiceProvider;
+use YourPackage\Data\UserData;
+
+class UserDataTest extends Orchestra
+{
+    protected function getPackageProviders($app)
+    {
+        return [
+            LaravelDataServiceProvider::class,
+            YourPackageServiceProvider::class,
+        ];
+    }
+    
+    /** @test */
+    public function it_can_create_user_data_from_array()
+    {
+        $userData = UserData::from([
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+        ]);
+        
+        $this->assertEquals('John Doe', $userData->name);
+        $this->assertEquals('john@example.com', $userData->email);
+    }
+}
+```
+
+## Publishing Config
+
+If your package needs custom data configuration, publish a config file:
+
+### Create Package Config
+
+```php
+// config/your-package-data.php
+
+return [
+    'data_namespace' => 'YourPackage\\Data',
+    
+    'casts' => [
+        // Custom casts for your package
+    ],
+    
+    'transformers' => [
+        // Custom transformers for your package
+    ],
+];
+```
+
+### Register in Service Provider
+
+```php
+use Illuminate\Support\ServiceProvider;
+
+class YourPackageServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/your-package-data.php',
+            'your-package-data'
+        );
+    }
+    
+    public function boot()
+    {
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/your-package-data.php' => config_path('your-package-data.php'),
+            ], 'config');
+        }
+    }
+}
+```
+
+## Package Structure
+
+Recommended structure for packages using Laravel Data:
+
+```
+your-package/
+├── config/
+│   └── your-package-data.php
+├── src/
+│   ├── Data/
+│   │   ├── UserData.php
+│   │   └── PostData.php
+│   ├── Casts/
+│   │   └── CustomCast.php
+│   ├── Transformers/
+│   │   └── CustomTransformer.php
+│   └── YourPackageServiceProvider.php
+├── tests/
+│   ├── TestCase.php
+│   └── Data/
+│       └── UserDataTest.php
+└── composer.json
+```
+
+## Composer Dependencies
+
+Add Laravel Data to your package's `composer.json`:
+
+```json
+{
+    "require": {
+        "spatie/laravel-data": "^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0"
+    }
+}
+```
+
+## Example: Package Data Class
+
+```php
+namespace YourPackage\Data;
+
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Attributes\Validation\Email;
+use Spatie\LaravelData\Attributes\Validation\Required;
+
+class UserData extends Data
+{
+    public function __construct(
+        #[Required]
+        public string $name,
+        
+        #[Required, Email]
+        public string $email,
+    ) {
+    }
+}
+```
+
+## Testing Without Orchestra
+
+If not using Orchestra Testbench, manually boot the service provider:
+
+```php
+use PHPUnit\Framework\TestCase;
+use Illuminate\Container\Container;
+use Spatie\LaravelData\LaravelDataServiceProvider;
+
+class UserDataTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        $app = new Container();
+        $provider = new LaravelDataServiceProvider($app);
+        $provider->register();
+        $provider->boot();
+    }
+    
+    // Your tests...
+}
+```
+
+<Note>
+The Orchestra Testbench approach is recommended as it provides a full Laravel application environment for testing.
+</Note>

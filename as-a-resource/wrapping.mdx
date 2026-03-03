@@ -1,0 +1,241 @@
+---
+title: Wrapping
+description: Wrap data objects in a custom key for consistent API responses
+---
+
+By default, when a data object is transformed into JSON in your controller, it looks like this:
+
+```json
+{
+    "name": "Never gonna give you up",
+    "artist": "Rick Astley"
+}
+```
+
+You can wrap a data object:
+
+```php
+SongData::from(Song::first())->wrap('data');
+```
+
+Now the JSON looks like this:
+
+```json
+{
+    "data": {
+        "name": "Never gonna give you up",
+        "artist": "Rick Astley"
+    }
+}
+```
+
+<Note>
+Data objects and collections will only get wrapped when sending them as a response, never when calling `toArray` or `toJson`.
+</Note>
+
+## Default Wrap Key
+
+Define a default wrap key inside a data object:
+
+```php
+class SongData extends Data
+{
+    public function defaultWrap(): string
+    {
+        return 'data';
+    }
+
+    // ...
+}
+```
+
+## Global Wrap Key
+
+Set a global wrap key in `config/data.php`:
+
+```php
+/*
+ * Data objects can be wrapped into a key like 'data' when used as a resource,
+ * this key can be set globally here for all data objects. You can pass in
+ * `null` if you want to disable wrapping.
+ */
+'wrap' => 'data',
+```
+
+## Wrapping Collections
+
+Collections can be wrapped just like data objects:
+
+```php
+SongData::collect(Song::all(), DataCollection::class)->wrap('data');
+```
+
+<Warning>
+For now, wrapping is only supported for `DataCollections`, `PaginatedDataCollections`, and `CursorPaginatedDataCollections` on the root level. Laravel Collections and arrays cannot be wrapped (yet), though nested properties with such types can be wrapped.
+</Warning>
+
+The JSON output:
+
+```json
+{
+    "data": [
+        {
+            "name": "Never Gonna Give You Up",
+            "artist": "Rick Astley"
+        },
+        {
+            "name": "Giving Up on Love",
+            "artist": "Rick Astley"
+        }
+    ]
+}
+```
+
+## Paginated Collections
+
+Set the data key in paginated collections:
+
+```php
+SongData::collect(Song::paginate(), PaginatedDataCollection::class)->wrap('paginated_data');
+```
+
+JSON output:
+
+```json
+{
+    "paginated_data": [
+        {
+            "name": "Never Gonna Give You Up",
+            "artist": "Rick Astley"
+        },
+        {
+            "name": "Giving Up on Love",
+            "artist": "Rick Astley"
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "first_page_url": "https://spatie.be/?page=1",
+        "from": 1,
+        "last_page": 7,
+        "last_page_url": "https://spatie.be/?page=7",
+        "next_page_url": "https://spatie.be/?page=2",
+        "path": "https://spatie.be/",
+        "per_page": 15,
+        "prev_page_url": null,
+        "to": 15,
+        "total": 100
+    }
+}
+```
+
+## Nested Wrapping
+
+A data object included inside another data object will never be wrapped even if a wrap is set:
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        public string $title,
+        public string $email,
+        public SongData $favorite_song,
+    ) {
+    }
+    
+    public static function fromModel(User $user): self
+    {
+        return new self(
+            $user->title,
+            $user->email,
+            SongData::create($user->favorite_song)->wrap('data')
+        );
+    }
+}
+
+UserData::from(User::first())->wrap('data');
+```
+
+JSON output:
+
+```json
+{
+    "data": {
+        "name": "Ruben",
+        "email": "ruben@spatie.be",
+        "favorite_song": {
+            "name": "Never Gonna Give You Up",
+            "artist": "Rick Astley"
+        }
+    }
+}
+```
+
+### Data Collections Inside Data Objects
+
+A data collection inside a data object will get wrapped when a wrapping key is set (mimicking Laravel resources):
+
+```php
+use Spatie\LaravelData\Attributes\DataCollectionOf;
+use Spatie\LaravelData\DataCollection;
+
+class AlbumData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[DataCollectionOf(SongData::class)]
+        public DataCollection $songs,
+    ) {
+    }
+
+    public static function fromModel(Album $album): self
+    {
+        return new self(
+            $album->title,
+            SongData::collect($album->songs, DataCollection::class)->wrap('data')
+        );
+    }
+}
+
+AlbumData::from(Album::first())->wrap('data');
+```
+
+JSON output:
+
+```json
+{
+    "data": {
+        "title": "Whenever You Need Somebody",
+        "songs": {
+            "data": [
+                {
+                    "name": "Never Gonna Give You Up",
+                    "artist": "Rick Astley"
+                },
+                {
+                    "name": "Giving Up on Love",
+                    "artist": "Rick Astley"
+                }
+            ]
+        }
+    }
+}
+```
+
+## Disabling Wrapping
+
+When a data object is wrapped due to the default wrap method or a global wrap key, you can disable wrapping:
+
+```php
+SongData::from(Song::first())->withoutWrapping();
+```
+
+## Getting a Wrapped Array
+
+By default, `toArray` and `toJson` never wrap a data object or collection. Get a wrapped array manually:
+
+```php
+use Spatie\LaravelData\Support\Wrapping\WrapExecutionType;
+
+SongData::from(Song::first())->wrap('data')->transform(wrapExecutionType: WrapExecutionType::Enabled);
+```

@@ -1,0 +1,148 @@
+---
+title: Requirements
+description: System requirements for Laravel Data
+---
+
+## System requirements
+
+Before installing Laravel Data, ensure your environment meets these requirements:
+
+<CardGroup cols={2}>
+  <Card title="PHP Version" icon="php">
+    **PHP 8.1 or higher**
+    
+    The package uses modern PHP features like constructor property promotion, named arguments, and attributes.
+  </Card>
+  
+  <Card title="Laravel Version" icon="laravel">
+    **Laravel 10, 11, 12, or 13**
+    
+    Compatible with all recent Laravel versions for maximum flexibility.
+  </Card>
+</CardGroup>
+
+## Version compatibility
+
+Laravel Data follows semantic versioning and maintains compatibility with multiple Laravel versions:
+
+| Laravel Data | PHP Version | Laravel Version |
+|--------------|-------------|------------------|
+| 4.x          | ^8.1        | ^10.0 \| ^11.0 \| ^12.0 \| ^13.0 |
+
+<Info>
+  The package uses Laravel's package auto-discovery, so it works seamlessly with all supported Laravel versions without additional configuration.
+</Info>
+
+## Required PHP extensions
+
+Laravel Data relies on the following PHP extensions, which are typically included in standard PHP installations:
+
+- **JSON** - For JSON encoding and decoding
+- **Reflection** - For analyzing data object structures
+- **Mbstring** - For string operations
+
+<Note>
+  These extensions are usually enabled by default in PHP 8.1+. If you encounter issues, verify they're enabled in your `php.ini` file.
+</Note>
+
+## Recommended packages
+
+While not required, these packages enhance Laravel Data's functionality:
+
+<AccordionGroup>
+  <Accordion title="Carbon (nesbot/carbon)">
+    For working with dates and times in data objects. Laravel includes Carbon by default.
+    
+    ```bash
+    composer require nesbot/carbon
+    ```
+  </Accordion>
+  
+  <Accordion title="Laravel TypeScript Transformer">
+    For generating TypeScript definitions from your data objects.
+    
+    ```bash
+    composer require spatie/laravel-typescript-transformer
+    ```
+  </Accordion>
+  
+  <Accordion title="Inertia.js">
+    For seamless integration with Inertia.js and lazy property support.
+    
+    ```bash
+    composer require inertiajs/inertia-laravel
+    ```
+  </Accordion>
+  
+  <Accordion title="Livewire">
+    For using data objects in Livewire components.
+    
+    ```bash
+    composer require livewire/livewire
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Checking your environment
+
+Verify your PHP version:
+
+```bash
+php -v
+```
+
+You should see output similar to:
+
+```
+PHP 8.1.0 (cli) (built: Nov 25 2021 10:45:23) ( NTS )
+```
+
+Verify your Laravel version in `composer.json`:
+
+```json
+{
+    "require": {
+        "laravel/framework": "^10.0|^11.0|^12.0|^13.0"
+    }
+}
+```
+
+<Warning>
+  If you're using PHP 8.0 or lower, you'll need to upgrade to PHP 8.1 or higher before installing Laravel Data.
+</Warning>
+
+## Production considerations
+
+<AccordionGroup>
+  <Accordion title="OPcache">
+    Enable OPcache in production for better performance:
+    
+    ```ini
+    opcache.enable=1
+    opcache.memory_consumption=128
+    opcache.max_accelerated_files=10000
+    ```
+  </Accordion>
+  
+  <Accordion title="Caching">
+    Enable structure caching in production (enabled by default):
+    
+    ```php
+    // config/data.php
+    'structure_caching' => [
+        'enabled' => true,
+    ],
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Laravel Data via Composer
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Build your first data object
+  </Card>
+</CardGroup>

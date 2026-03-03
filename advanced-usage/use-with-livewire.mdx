@@ -1,0 +1,135 @@
+---
+title: Use with Livewire
+description: Integrate Laravel Data with Livewire components for reactive data objects
+---
+
+> Livewire is a full-stack framework for Laravel that makes building dynamic interfaces simple without leaving the comfort of Laravel.
+
+Laravel Data works excellently with [Laravel Livewire](https://livewire.laravel.com/).
+
+## Using Wireable (Traditional)
+
+Use data objects as Livewire component properties:
+
+```php
+class Song extends Component
+{
+    public SongData $song;
+
+    public function mount(int $id)
+    {
+        $this->song = SongData::from(Song::findOrFail($id));
+    }
+
+    public function render()
+    {
+        return view('livewire.song');
+    }
+}
+```
+
+### Requirements
+
+1. Implement `Wireable` on your data class
+2. Use the `WireableData` trait
+
+```php
+class SongData extends Data implements Wireable
+{
+    use WireableData;
+
+    public function __construct(
+        public string $title,
+        public string $artist,
+    ) {
+    }
+}
+```
+
+## Livewire Synths (Experimental)
+
+<Warning>
+This is an experimental feature and subject to change.
+</Warning>
+
+Livewire Synths allow you to use data objects without making them Wireable.
+
+Enable in `config/data.php`:
+
+```php
+'livewire' => [
+    'enable_synths' => true,
+]
+```
+
+Use data objects directly:
+
+```php
+class SongUpdateComponent extends Component
+{
+    public SongData $data;
+
+    public function mount(public int $id): void
+    {
+        $this->data = SongData::from(Song::findOrFail($id));
+    }
+
+    public function save(): void
+    {
+        Artist::findOrFail($this->id)->update($this->data->toArray());
+    }
+
+    public function render(): string
+    {
+        return <<<'BLADE'
+        <div>
+            <h1>Songs</h1>
+            <input type="text" wire:model.live="data.title">
+            <input type="text" wire:model.live="data.artist">
+            <p>Title: {{ $data->title }}</p>
+            <p>Artist: {{ $data->artist }}</p>
+            <button wire:click="save">Save</button>
+        </div>
+        BLADE;
+    }
+}
+```
+
+## Lazy Properties
+
+Lazy properties won't be sent over the wire unless included.
+
+<Warning>
+**Always include properties permanently** because data objects are transformed and cast again between Livewire requests.
+</Warning>
+
+```php
+use Spatie\LaravelData\Lazy;
+
+class LazySongData extends Data
+{
+    public function __construct(
+        public Lazy|ArtistData $artist,
+        public Lazy|string $title,
+    ) {}    
+}
+```
+
+In your Livewire view:
+
+```php
+$this->data->artist->name; // Works (nested data object)
+$this->data->title; // Does not work (lazy non-data property)
+```
+
+<Note>
+You can query lazy nested data objects, but not lazy properties that aren't data objects.
+</Note>
+
+## Validation
+
+<Warning>
+Laravel Data **does not provide validation** when using Livewire. You must implement validation yourself.
+</Warning>
+
+This is because laravel-data only validates payloads during creation, not existing data objects. The validation could technically happen when hydrating, but we cannot guarantee that every hydration happens with validated data.

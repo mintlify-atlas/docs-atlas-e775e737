@@ -1,0 +1,256 @@
+---
+title: Traits and Interfaces
+description: Understand the modular architecture of Laravel Data through traits and interfaces
+---
+
+Laravel Data is built to be flexible through a modular system of traits and interfaces. This allows you to create custom base data classes with exactly the functionality you need.
+
+## The Base Data Class
+
+The `Data` class you've been using is actually a composition of multiple traits and interfaces:
+
+```php
+use Illuminate\Contracts\Support\Responsable;
+use Spatie\LaravelData\Concerns\AppendableData;
+use Spatie\LaravelData\Concerns\BaseData;
+use Spatie\LaravelData\Concerns\ContextableData;
+use Spatie\LaravelData\Concerns\EmptyData;
+use Spatie\LaravelData\Concerns\IncludeableData;
+use Spatie\LaravelData\Concerns\ResponsableData;
+use Spatie\LaravelData\Concerns\TransformableData;
+use Spatie\LaravelData\Concerns\ValidateableData;
+use Spatie\LaravelData\Concerns\WrappableData;
+use Spatie\LaravelData\Contracts\AppendableData as AppendableDataContract;
+use Spatie\LaravelData\Contracts\BaseData as BaseDataContract;
+use Spatie\LaravelData\Contracts\EmptyData as EmptyDataContract;
+use Spatie\LaravelData\Contracts\IncludeableData as IncludeableDataContract;
+use Spatie\LaravelData\Contracts\ResponsableData as ResponsableDataContract;
+use Spatie\LaravelData\Contracts\TransformableData as TransformableDataContract;
+use Spatie\LaravelData\Contracts\ValidateableData as ValidateableDataContract;
+use Spatie\LaravelData\Contracts\WrappableData as WrappableDataContract;
+
+abstract class Data implements 
+    Responsable, 
+    AppendableDataContract, 
+    BaseDataContract, 
+    TransformableDataContract, 
+    IncludeableDataContract, 
+    ResponsableDataContract, 
+    ValidateableDataContract, 
+    WrappableDataContract, 
+    EmptyDataContract
+{
+    use ResponsableData;
+    use IncludeableData;
+    use AppendableData;
+    use ValidateableData;
+    use WrappableData;
+    use TransformableData;
+    use BaseData;
+    use EmptyData;
+    use ContextableData;
+}
+```
+
+## Available Traits and Interfaces
+
+Each interface and corresponding trait provides specific functionality:
+
+<AccordionGroup>
+<Accordion title="BaseData">
+Provides the base functionality to create data objects.
+
+**Interface**: `Spatie\LaravelData\Contracts\BaseData`  
+**Trait**: `Spatie\LaravelData\Concerns\BaseData`
+
+This is the core functionality that enables:
+- Creating data objects from various sources
+- The `from()` method
+- Magic creation methods
+</Accordion>
+
+<Accordion title="BaseDataCollectable">
+Provides base functionality to create data collections.
+
+**Interface**: `Spatie\LaravelData\Contracts\BaseDataCollectable`  
+**Trait**: `Spatie\LaravelData\Concerns\BaseDataCollectable`
+
+Enables collection operations for data objects.
+</Accordion>
+
+<Accordion title="ContextableData">
+Provides context functionality for includes and wraps.
+
+**Trait**: `Spatie\LaravelData\Concerns\ContextableData`
+
+Manages transformation context like includes, excludes, wraps, etc.
+</Accordion>
+
+<Accordion title="IncludeableData">
+Provides functionality to add includes, excludes, only, and except.
+
+**Interface**: `Spatie\LaravelData\Contracts\IncludeableData`  
+**Trait**: `Spatie\LaravelData\Concerns\IncludeableData`
+
+Enables:
+- `->include('property')`
+- `->exclude('property')`
+- `->only('property')`
+- `->except('property')`
+</Accordion>
+
+<Accordion title="TransformableData">
+Provides functionality to transform data objects.
+
+**Interface**: `Spatie\LaravelData\Contracts\TransformableData`  
+**Trait**: `Spatie\LaravelData\Concerns\TransformableData`
+
+Enables:
+- `->toArray()`
+- `->toJson()`
+- Transformation to various formats
+</Accordion>
+
+<Accordion title="ResponsableData">
+Provides functionality to return data objects as HTTP responses.
+
+**Interface**: `Spatie\LaravelData\Contracts\ResponsableData`  
+**Trait**: `Spatie\LaravelData\Concerns\ResponsableData`
+
+Allows returning data objects directly from controllers.
+</Accordion>
+
+<Accordion title="WrappableData">
+Provides functionality to wrap transformed data.
+
+**Interface**: `Spatie\LaravelData\Contracts\WrappableData`  
+**Trait**: `Spatie\LaravelData\Concerns\WrappableData`
+
+Enables:
+- `->wrap('data')`
+- Custom wrapping keys
+</Accordion>
+
+<Accordion title="AppendableData">
+Provides functionality to append data to transformed payloads.
+
+**Interface**: `Spatie\LaravelData\Contracts\AppendableData`  
+**Trait**: `Spatie\LaravelData\Concerns\AppendableData`
+
+Enables:
+- `->additional(['key' => 'value'])`
+- Appending extra data to responses
+</Accordion>
+
+<Accordion title="EmptyData">
+Provides functionality to get an empty version of the data object.
+
+**Interface**: `Spatie\LaravelData\Contracts\EmptyData`  
+**Trait**: `Spatie\LaravelData\Concerns\EmptyData`
+
+Enables:
+- `::empty()`
+- Creating empty data objects
+</Accordion>
+
+<Accordion title="ValidateableData">
+Provides functionality to validate data objects.
+
+**Interface**: `Spatie\LaravelData\Contracts\ValidateableData`  
+**Trait**: `Spatie\LaravelData\Concerns\ValidateableData`
+
+Enables:
+- `::validate($data)`
+- `::getValidationRules($data)`
+- Automatic validation
+</Accordion>
+
+<Accordion title="DeprecatableData">
+Provides functionality for deprecated features.
+
+**Interface**: `Spatie\LaravelData\Contracts\DeprecatableData`  
+**Trait**: `Spatie\LaravelData\Concerns\DeprecatableData`
+
+Supports backward compatibility features.
+</Accordion>
+</AccordionGroup>
+
+## Creating Custom Base Classes
+
+You can create your own base data classes with specific functionality:
+
+### Example: Minimal Data Class
+
+Create a data class with only creation and transformation:
+
+```php
+use Spatie\LaravelData\Concerns\BaseData;
+use Spatie\LaravelData\Concerns\TransformableData;
+use Spatie\LaravelData\Contracts\BaseData as BaseDataContract;
+use Spatie\LaravelData\Contracts\TransformableData as TransformableDataContract;
+
+abstract class MinimalData implements BaseDataContract, TransformableDataContract
+{
+    use BaseData;
+    use TransformableData;
+}
+```
+
+### Example: API Resource Class
+
+Create a data class optimized for API resources:
+
+```php
+use Illuminate\Contracts\Support\Responsable;
+use Spatie\LaravelData\Concerns\BaseData;
+use Spatie\LaravelData\Concerns\IncludeableData;
+use Spatie\LaravelData\Concerns\ResponsableData;
+use Spatie\LaravelData\Concerns\TransformableData;
+use Spatie\LaravelData\Concerns\WrappableData;
+use Spatie\LaravelData\Contracts\BaseData as BaseDataContract;
+use Spatie\LaravelData\Contracts\IncludeableData as IncludeableDataContract;
+use Spatie\LaravelData\Contracts\ResponsableData as ResponsableDataContract;
+use Spatie\LaravelData\Contracts\TransformableData as TransformableDataContract;
+use Spatie\LaravelData\Contracts\WrappableData as WrappableDataContract;
+
+abstract class Resource implements 
+    Responsable,
+    BaseDataContract, 
+    TransformableDataContract,
+    IncludeableDataContract,
+    ResponsableDataContract,
+    WrappableDataContract
+{
+    use BaseData;
+    use TransformableData;
+    use IncludeableData;
+    use ResponsableData;
+    use WrappableData;
+}
+```
+
+### Example: DTO Class
+
+Create a data class for DTOs without HTTP concerns:
+
+```php
+use Spatie\LaravelData\Concerns\BaseData;
+use Spatie\LaravelData\Concerns\ValidateableData;
+use Spatie\LaravelData\Contracts\BaseData as BaseDataContract;
+use Spatie\LaravelData\Contracts\ValidateableData as ValidateableDataContract;
+
+abstract class Dto implements BaseDataContract, ValidateableDataContract
+{
+    use BaseData;
+    use ValidateableData;
+}
+```
+
+## Built-in Custom Classes
+
+The package includes two custom base classes:
+
+- **Resource** - Optimized for API resources with transformation and response features
+- **Dto** - Optimized for data transfer objects with validation
+
+Use these as starting points or create your own custom base classes.

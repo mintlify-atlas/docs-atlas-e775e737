@@ -1,0 +1,96 @@
+---
+title: Creating a Transformer
+description: Build custom transformers to convert complex values into simple types
+---
+
+Transformers take complex values and transform them into simple types. For example, a `Carbon` object could be transformed to `16-05-1994T00:00:00+00`.
+
+## Transformer Interface
+
+Implement the `Transformer` interface:
+
+```php
+interface Transformer
+{
+    public function transform(DataProperty $property, mixed $value, TransformationContext $context): mixed;
+}
+```
+
+### Parameters
+
+- **property** - `DataProperty` object representing the property being transformed ([read more](/advanced-usage/internal-structures))
+- **value** - The value to transform (never `null`)
+- **context** - `TransformationContext` containing:
+  - `transformValues` - Whether values should be transformed
+  - `mapPropertyNames` - Whether property names should be mapped
+  - `wrapExecutionType` - The execution type for wrapping values
+  - `transformers` - Collection of available transformers
+
+### Return Value
+
+Return the transformed value.
+
+## Example Transformer
+
+```php
+use Spatie\LaravelData\Transformers\Transformer;
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Transformation\TransformationContext;
+
+class DateTimeTransformer implements Transformer
+{
+    public function transform(DataProperty $property, mixed $value, TransformationContext $context): string
+    {
+        return $value->format('Y-m-d H:i:s');
+    }
+}
+```
+
+Use in your data class:
+
+```php
+use Spatie\LaravelData\Attributes\WithTransformer;
+
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[WithTransformer(DateTimeTransformer::class)]
+        public DateTime $releasedAt,
+    ) {
+    }
+}
+```
+
+## Combining Transformers and Casts
+
+Create a class that both transforms and casts:
+
+```php
+class ToUpperCastAndTransformer implements Cast, Transformer
+{
+    public function cast(DataProperty $property, mixed $value, array $properties, CreationContext $context): string
+    {
+        return strtoupper($value);
+    }
+    
+    public function transform(DataProperty $property, mixed $value, TransformationContext $context): string
+    {
+        return strtoupper($value);
+    }
+}
+```
+
+Use with the `WithCastAndTransformer` attribute:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        #[WithCastAndTransformer(ToUpperCastAndTransformer::class)]
+        public string $artist,
+    ) {
+    }
+}
+```

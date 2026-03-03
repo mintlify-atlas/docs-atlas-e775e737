@@ -1,0 +1,249 @@
+---
+title: Transformers
+description: Transform complex types like Carbon and DateTime into simple types for API responses
+---
+
+Transformers allow you to transform complex types to simple types when converting a data object to an array or JSON.
+
+No complex transformations are required for default types (string, bool, int, float, enum and array), but special types like `Carbon` or Laravel Models need extra attention.
+
+## Local Transformers
+
+When you want to transform a specific property, use an attribute with the transformer:
+
+```php
+class ArtistData extends Data
+{
+    public function __construct(
+        public string $name,
+        #[WithTransformer(DateTimeInterfaceTransformer::class)]
+        public Carbon $birth_date
+    ) {
+    }
+}
+```
+
+The `DateTimeInterfaceTransformer` is shipped with the package and transforms `Carbon`, `CarbonImmutable`, `DateTime` and `DateTimeImmutable` to a string.
+
+### Custom Format
+
+Define a custom format:
+
+```php
+class ArtistData extends Data
+{
+    public function __construct(
+        public string $name,
+        #[WithTransformer(DateTimeInterfaceTransformer::class, format: 'm-Y')]
+        public Carbon $birth_date
+    ) {
+    }
+}
+```
+
+## Built-in Transformers
+
+The package ships with several transformers:
+
+<Tabs>
+  <Tab title="DateTimeInterface">
+    Transforms date/time objects to strings:
+
+    ```php
+    #[WithTransformer(DateTimeInterfaceTransformer::class)]
+    public Carbon $birth_date;
+    ```
+
+    Configure the format in `config/data.php` or pass it directly:
+
+    ```php
+    #[WithTransformer(DateTimeInterfaceTransformer::class, format: 'Y-m-d')]
+    public Carbon $birth_date;
+    ```
+  </Tab>
+  <Tab title="Arrayable">
+    Transforms `Arrayable` objects to arrays:
+
+    ```php
+    #[WithTransformer(ArrayableTransformer::class)]
+    public Collection $items;
+    ```
+  </Tab>
+</Tabs>
+
+## Global Transformers
+
+Global transformers are defined in `config/data.php` and used when no local transformer is specified:
+
+```php
+use Illuminate\Contracts\Support\Arrayable;
+use Spatie\LaravelData\Transformers\ArrayableTransformer;
+use Spatie\LaravelData\Transformers\DateTimeInterfaceTransformer;
+
+'transformers' => [
+    DateTimeInterface::class => DateTimeInterfaceTransformer::class,
+    Arrayable::class => ArrayableTransformer::class,
+],
+```
+
+You can define transformers for:
+- A **specific implementation** (e.g. `CarbonImmutable`)
+- An **interface** (e.g. `DateTimeInterface`)
+- A **base class** (e.g. `Enum`)
+
+## Creating Custom Transformers
+
+Create a custom transformer by implementing the `Transformer` interface:
+
+```php
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Transformation\TransformationContext;
+use Spatie\LaravelData\Transformers\Transformer;
+
+class DateTimeInterfaceTransformer implements Transformer
+{
+    public function __construct(
+        protected ?string $format = null,
+        protected ?string $setTimeZone = null
+    ) {
+        $this->format = $format ?? config('data.date_format');
+    }
+
+    public function transform(DataProperty $property, mixed $value, TransformationContext $context): string
+    {
+        $this->setTimeZone ??= config('data.date_timezone');
+
+        if ($this->setTimeZone) {
+            $value = (clone $value)->setTimezone(new DateTimeZone($this->setTimeZone));
+        }
+
+        return $value->format($this->format);
+    }
+}
+```
+
+## Without Transforming
+
+Get an array representation without transforming properties:
+
+```php
+ArtistData::from($artist)->all();
+```
+
+This means `Carbon` objects won't be transformed into strings, and nested data objects won't be transformed into arrays.
+
+## Advanced Transform Method
+
+The `transform` method is highly configurable:
+
+```php
+ArtistData::from($artist)->transform();
+```
+
+Output:
+
+```php
+[
+    'name' => 'Rick Astley',
+    'birth_date' => '06-02-1966',
+]
+```
+
+### Disable Value Transformation
+
+```php
+use Spatie\LaravelData\Support\Transformation\TransformationContext;
+
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->withoutValueTransformation()
+);
+```
+
+Output:
+
+```php
+[
+    'name' => 'Rick Astley',
+    'birth_date' => Carbon::parse('06-02-1966'),
+]
+```
+
+### Disable Property Name Mapping
+
+```php
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->withoutPropertyNameMapping()
+);
+```
+
+### Enable Wrapping
+
+```php
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->withWrapping()
+);
+```
+
+Output:
+
+```php
+[
+    'data' => [
+        'name' => 'Rick Astley',
+        'birth_date' => '06-02-1966',
+    ],
+]
+```
+
+### Add Global Transformers
+
+```php
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->withGlobalTransformer(
+        'string', 
+        StringToUpperTransformer::class
+    )
+);
+```
+
+## Transformation Depth
+
+Prevent infinite loops in nested data structures by setting a maximum depth:
+
+### Global Configuration
+
+In `config/data.php`:
+
+```php
+'max_transformation_depth' => 20,
+```
+
+Disable the check:
+
+```php
+'max_transformation_depth' => null,
+```
+
+Throw exception or return empty array:
+
+```php
+'throw_when_max_transformation_depth_reached' => true,
+```
+
+### Per-Transformation
+
+Set depth for a specific transformation:
+
+```php
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->maxDepth(20)
+);
+```
+
+Return empty array instead of throwing:
+
+```php
+ArtistData::from($artist)->transform(
+    TransformationContextFactory::create()->maxDepth(20, throw: false)
+);
+```

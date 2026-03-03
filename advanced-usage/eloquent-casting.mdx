@@ -1,0 +1,238 @@
+---
+title: Eloquent Casting
+description: Use Laravel Data objects as Eloquent casts for seamless model integration
+---
+
+Since data objects can be created from arrays and easily transformed back to arrays, they work excellently with [Eloquent casts](https://laravel.com/docs/eloquent-mutators#custom-casts).
+
+## Basic Usage
+
+Cast a model attribute to a data object:
+
+```php
+class Song extends Model
+{
+    protected $casts = [
+        'artist' => ArtistData::class,
+    ];
+}
+```
+
+Store a data object in a model:
+
+```php
+Song::create([
+    'artist' => new ArtistData(name: 'Rick Astley', age: 22),
+]);
+```
+
+Or use an array representation:
+
+```php
+Song::create([
+    'artist' => [
+        'name' => 'Rick Astley',
+        'age' => 22
+    ]
+]);
+```
+
+Retrieve the data object:
+
+```php
+Song::findOrFail($id)->artist; // ArtistData object
+```
+
+## Abstract Data Objects
+
+Use abstract parent data objects with multiple child implementations:
+
+```php
+abstract class RecordConfig extends Data
+{
+    public function __construct(
+        public int $tracks,
+    ) {}
+}
+
+class CdRecordConfig extends RecordConfig
+{
+    public function __construct(
+        int $tracks,
+        public int $bytes,
+    ) {
+        parent::__construct($tracks);
+    }
+}
+
+class VinylRecordConfig extends RecordConfig
+{
+    public function __construct(
+        int $tracks,
+        public int $rpm,
+    ) {
+        parent::__construct($tracks);
+    }
+}
+```
+
+Cast to an abstract data class:
+
+```php
+class Record extends Model
+{
+    protected $casts = [
+        'config' => RecordConfig::class,
+    ];
+}
+```
+
+Store either child type:
+
+```php
+$cdRecord = Record::create([
+    'config' => new CdRecordConfig(tracks: 12, bytes: 1000),
+]);
+
+$vinylRecord = Record::create([
+    'config' => new VinylRecordConfig(tracks: 12, rpm: 33),
+]);
+
+$cdRecord->config; // CdRecordConfig object
+$vinylRecord->config; // VinylRecordConfig object
+```
+
+### Database Storage Format
+
+Child data objects are stored with type information:
+
+```json
+{
+    "type": "\\App\\Data\\CdRecordConfig",
+    "data": {
+        "tracks": 12,
+        "bytes": 1000
+    }
+}
+```
+
+### Abstract Data with Collections
+
+Cast collections of abstract data objects:
+
+```php
+class Record extends Model
+{
+    protected $casts = [
+        'configs' => DataCollection::class . ':' . RecordConfig::class,
+    ];
+}
+```
+
+### Morph Maps
+
+Prevent class name changes from breaking your application:
+
+```php
+use Spatie\LaravelData\Support\DataConfig;
+
+app(DataConfig::class)->enforceMorphMap([
+    'cd_record_config' => CdRecordConfig::class,
+    'vinyl_record_config' => VinylRecordConfig::class,
+]);
+```
+
+## Casting Data Collections
+
+Store collections of data objects:
+
+```php
+class Artist extends Model
+{
+    protected $casts = [
+        'songs' => DataCollection::class.':'.SongData::class,
+    ];
+}
+```
+
+Create with data objects or arrays:
+
+```php
+Artist::create([
+    'songs' => [
+        new SongData(title: 'Never gonna give you up', artist: 'Rick Astley'),
+        new SongData(title: 'Together Forever', artist: 'Rick Astley'),
+    ],
+]);
+
+// Or with arrays
+Artist::create([
+    'songs' => [
+        ['title' => 'Never gonna give you up', 'artist' => 'Rick Astley'],
+        ['title' => 'Together Forever', 'artist' => 'Rick Astley']
+    ],
+]);
+```
+
+## Default Values for Null
+
+Instantiate data objects with defaults when database value is null:
+
+```php
+class Song extends Model
+{
+    protected $casts = [
+        'artist' => ArtistData::class . ':default',
+    ];
+}
+```
+
+Define default values in the data class:
+
+```php
+class ArtistData extends Data 
+{
+    public string $name = 'Default name';
+}
+```
+
+```php
+Song::findOrFail($id)->artist->name; // 'Default name'
+```
+
+### Nullable Collections
+
+Always return a DataCollection even when null:
+
+```php
+class Artist extends Model
+{
+    protected $casts = [
+        'songs' => DataCollection::class.':'.SongData::class.',default',
+    ];
+}
+```
+
+```php
+$artist = Artist::create([
+    'songs' => null
+]);
+
+$artist->songs; // DataCollection
+$artist->songs->count(); // 0
+```
+
+## Encryption
+
+Encrypt data objects and collections automatically:
+
+```php
+class Artist extends Model
+{
+    protected $casts = [
+        'songs' => DataCollection::class.':'.SongData::class.',encrypted',
+    ];
+}
+```
+
+Data is encrypted when stored and decrypted when retrieved automatically.

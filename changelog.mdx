@@ -1,0 +1,212 @@
+---
+title: Changelog
+description: Major version history and breaking changes for Laravel Data
+---
+
+All notable changes to Laravel Data are documented in this file. For the complete changelog, visit the [GitHub repository](https://github.com/spatie/laravel-data/blob/main/CHANGELOG.md).
+
+## Version 4.20.0 (2026-02-25)
+
+- Laravel 13 support
+- Livewire 4 support
+- **Breaking**: Dropped PHP 8.1 support
+
+## Version 4.19.0 (2026-01-19)
+
+- Fixed DataMorphClassResolver: skip default value applying if morph property was resolved
+- Fixed dependency issue
+
+## Version 4.18.0 (2025-10-16)
+
+Major feature release with multiple improvements:
+
+- Improved validate performance
+- Can get the data class for a data collection by annotation with unicode characters
+- Allow re-encrypting attributes when app uses previous keys
+- Added group to Inertia defer
+- Added KebabCaseMapper
+- Support BackedEnum to BackedEnum casting in EnumCast
+- Added protocol support to Url attribute
+- BuiltinTypeCast true and false strings to bool
+
+## Version 4.17.0 (2025-06-25)
+
+- Add support for external validation attribute references
+
+<Warning>
+  While technically not breaking, some changes were made inside the validation attributes. Check the [pull request](https://github.com/spatie/laravel-data/pull/1051) for details.
+</Warning>
+
+## Version 4.16.0 (2025-06-20)
+
+- Add return type annotations to TransformableData trait
+- Add the possibility to except key for empty data generation
+- Enhance CannotCastEnum exception message to include property name
+- Implement the compare method on the eloquent casts to improve the isDirty check
+- Add support for default values on properties for morph
+- Fix problem with dynamic properties
+
+## Version 4.15.0 (2025-04-09)
+
+Exciting new features:
+
+- Add support for inertia deferred props
+- Add EmptyString support for Formik compatibility
+- Feature: property morphable
+
+## Version 4.14.0 (2025-03-14)
+
+<Warning>
+  If you're using cached versions of your data objects and don't clear this cache on deploy, clear the cache as internal structures have been updated.
+</Warning>
+
+- Fix an issue where data classes could not be cached
+- Fix retrieval of property to work for Astrotomic/translatable
+- Refactored some internals for storing attribute information
+- Add dataClass to normalize exception message
+- Add Macroable Trait to Data Collection Classes
+
+## Version 4.13.1 (2025-02-14)
+
+- Allow Laravel 12
+- Add "laravel-data-json-schemas" to third party packages
+
+## Version 4.13.0 (2025-01-24)
+
+- Auto lazy feature added
+
+## Version 4.12.0 (2025-01-24)
+
+<Note>
+  One of the biggest minor releases ever for Laravel Data!
+</Note>
+
+Key highlights:
+
+### Disabling Optional Values
+
+Optional values are great, but sometimes a `null` value is desirable:
+
+```php
+class SongData extends Data {
+    public function __construct(
+        public string $title,
+        public string $artist,
+        public Optional|null|string $album,
+    ) {}
+}
+
+SongData::factory()
+    ->withoutOptionalValues()
+    ->from(['title' => 'Never gonna give you up', 'artist' => 'Rick Astley']); 
+// album will be `null` instead of `Optional`
+```
+
+### Injecting Property Values
+
+Extended functionality for injecting dependencies from the container and the authenticated user:
+
+```php
+class SongData extends Data {
+    #[FromAuthenticatedUser]
+    public UserData $user;
+}
+```
+
+### Merging Manual Rules
+
+Define manual validation rules and merge them with automatically generated rules:
+
+```php
+#[MergeValidationRules]
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        public string $artist,
+    ) {}
+
+    public static function rules(): array
+    {
+        return [
+            'title' => ['max:20'],
+            'artist' => ['max:20'],
+        ];
+    }
+}
+```
+
+### New Property Mappers
+
+- `UppercaseMapper` for mapping property names to uppercase
+- `LowercaseMapper` for mapping property names to lowercase
+
+## Version 4.11.0 (2024-10-22)
+
+- Support "null to optional" feature
+- Register optimize commands
+
+## Version 4.10.0 (2024-10-04)
+
+- Fix an issue where required rules could not be combined with optional
+- Fix Livewire return type
+- Fix issue where validation messages were ignored by collections nested in collections
+- Stop NormalizedModel from initializing itself
+- Allow setting a default mapping strategy
+
+## Version 4.0.0
+
+<Warning>
+  Major version release with breaking changes. Review the migration guide before upgrading.
+</Warning>
+
+Major changes:
+
+- Allow arrays, Collections, Paginators to be used as DataCollections
+- Add support for magically creating data collections
+- Rewritten transformation system with respect to includeable properties
+- Addition of `collect` method
+- **Breaking**: Removal of `collection` method
+- Add support for using Laravel Model attributes as data properties
+- Allow creating data objects using `from` without parameters
+- Add support for Dto and Resource objects
+- Easier validation for all payloads added to laravel-data
+- Added contexts to the creation and transformation process
+- Allow creating a data object or collection using a factory
+- Speed improvements for creating and transforming data objects
+- Add support for BNF syntax
+- Laravel 10 requirement
+- Rewritten documentation
+
+## Version 3.0.0 (2023-02-01)
+
+<Warning>
+  Major version release with significant validation system changes.
+</Warning>
+
+- Complete rewrite of validation logic
+- Add support for nested nullable and optional data objects
+- Allow referencing other fields in validation attributes when data is nested
+- Allow referencing url parameters (and model properties) in validation attributes
+- Allow circular dependencies when validating data
+- Add support for nested validation messages and attributes
+- Package specific properties renamed to avoid conflicts
+- Serialization logic updated to only serialize your properties
+
+## Version 2.0.0 (2022-07-08)
+
+<Warning>
+  Complete package rewrite. Review the migration guide.
+</Warning>
+
+Major new features:
+
+- DataPipeline
+- Data normalizers
+- Mappable property names
+- Wrapping of data in responses
+- `only` and `except` methods on Data and DataCollections
+- Multiple parameter magic methods
+- Optional properties
+- Split DataCollections
+- Better support for TypeScript Transformer

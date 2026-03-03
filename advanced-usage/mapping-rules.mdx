@@ -1,0 +1,104 @@
+---
+title: Mapping Rules
+description: Understand when to use original vs mapped property names in Laravel Data
+---
+
+Property name mapping can be configured with `MapOutputName`, `MapInputName`, and `MapName` attributes. This guide clarifies when to use which name.
+
+## In the Data Object
+
+```php
+class UserData extends Data
+{
+    public function __construct(
+        #[MapName('favorite_song')] // name mapping
+        public Lazy|SongData $song,
+        #[RequiredWith('song')] // Use the original name in validation rules
+        public string $title,
+    ) {
+    }
+
+    public static function allowedRequestExcept(): ?array
+    {
+        return [
+            'song', // Use the original name
+        ];
+    }
+    
+    public function rules(ValidContext $context): array {
+        return  [
+            'song' => 'required', // Use the original name
+        ];
+    }
+}
+```
+
+<Accordion title="Key Principle">
+**In data class definitions, always use the original property name** for:
+- Validation rules
+- Allowed request includes/excludes/excepts/only
+- Custom rules methods
+</Accordion>
+
+## When Creating a Data Object
+
+You can use either the mapped or original name:
+
+```php
+UserData::from([
+    'favorite_song' => ..., // Mapped name works
+    'title' => 'some title'
+]);
+
+UserData::from([
+    'song' => ..., // Original name also works
+    'title' => 'some title'
+]);
+```
+
+## When Adding Includes/Excludes
+
+**Always use the original name:**
+
+```php
+UserData::from(User::first())->except('song'); // Not 'favorite_song'
+```
+
+## In Request Query Parameters
+
+You can use either the mapped or original name:
+
+```
+https://spatie.be/my-account?except[]=favorite_song
+https://spatie.be/my-account?except[]=song
+```
+
+Both will work.
+
+## When Validating
+
+**Always use the original name:**
+
+```php
+$data = [
+    'favorite_song' => 123,
+    'title' => 'some title',
+];
+
+UserData::validate($data);
+UserData::getValidationRules($data);
+```
+
+## Summary Table
+
+| Context | Use Original | Use Mapped | Use Either |
+|---------|:------------:|:----------:|:----------:|
+| Data class definitions (rules, allowed, etc.) | ✓ | | |
+| Creating data objects | | | ✓ |
+| Includes/excludes/except/only | ✓ | | |
+| Request query parameters | | | ✓ |
+| Validation | ✓ | | |
+
+<Note>
+When in doubt, use the original property name. It always works in internal contexts.
+</Note>

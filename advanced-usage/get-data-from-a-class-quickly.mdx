@@ -1,0 +1,130 @@
+---
+title: Get Data From a Class Quickly
+description: Use the WithData trait to quickly generate data objects from models and requests
+---
+
+The `WithData` trait enables support for the `getData()` method on Models, Requests, or any class that can be magically converted to a data object.
+
+## Using with Models
+
+Add the trait and specify the data class:
+
+```php
+class Song extends Model
+{
+    use WithData;
+    
+    protected $dataClass = SongData::class;
+}
+```
+
+Quickly get the data object:
+
+```php
+Song::firstOrFail($id)->getData(); // A SongData object
+```
+
+## Using with Form Requests
+
+For FormRequests, use a method instead of a property:
+
+```php
+class SongRequest extends FormRequest
+{
+    use WithData;
+    
+    protected function dataClass(): string
+    {
+        return SongData::class;
+    }
+}
+```
+
+Use in a controller:
+
+```php
+class SongController
+{
+    public function __invoke(SongRequest $request): SongData
+    {
+        $data = $request->getData();
+    
+        $song = Song::create($data->toArray());
+        
+        return $data;
+    }
+}
+```
+
+## Benefits
+
+<CardGroup cols={2}>
+<Card title="Clean Controllers" icon="broom">
+Reduce boilerplate by calling `getData()` instead of `SongData::from($model)`
+</Card>
+
+<Card title="Type Safety" icon="shield">
+The data class is defined once and reused consistently
+</Card>
+
+<Card title="Discoverability" icon="magnifying-glass">
+IDEs can autocomplete the data class from the model/request
+</Card>
+
+<Card title="Validation" icon="check">
+Form requests automatically validate before creating the data object
+</Card>
+</CardGroup>
+
+## Complete Example
+
+```php
+// Model
+class Song extends Model
+{
+    use WithData;
+    
+    protected $dataClass = SongData::class;
+}
+
+// Request
+class StoreSongRequest extends FormRequest
+{
+    use WithData;
+    
+    protected function dataClass(): string
+    {
+        return SongData::class;
+    }
+    
+    public function rules(): array
+    {
+        return [
+            'title' => 'required|string',
+            'artist' => 'required|string',
+        ];
+    }
+}
+
+// Controller
+class SongController extends Controller
+{
+    public function store(StoreSongRequest $request)
+    {
+        $data = $request->getData();
+        
+        $song = Song::create($data->toArray());
+        
+        return $song->getData();
+    }
+    
+    public function show(int $id)
+    {
+        return Song::findOrFail($id)->getData();
+    }
+}
+```
+
+<Note>
+The `getData()` method respects all the same creation rules as calling `SongData::from()` directly, including magic methods and validation.
+</Note>

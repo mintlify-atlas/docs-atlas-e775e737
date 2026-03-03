@@ -1,0 +1,143 @@
+---
+title: Introduction
+description: Powerful data objects for Laravel that unify form requests, API resources, and TypeScript definitions
+---
+
+## Powerful data objects for Laravel
+
+Laravel Data enables you to create rich, type-safe data objects that work seamlessly throughout your entire application. Using this package, you only need to describe your data structure once.
+
+<CardGroup cols={3}>
+  <Card title="Form Requests" icon="file-check">
+    Replace form request classes with data objects that handle validation automatically
+  </Card>
+  <Card title="API Resources" icon="code">
+    Transform data objects into JSON responses without writing separate transformer classes
+  </Card>
+  <Card title="TypeScript Definitions" icon="js">
+    Generate TypeScript definitions from your data objects for end-to-end type safety
+  </Card>
+</CardGroup>
+
+## What is a data object?
+
+A Laravel Data object is a regular PHP class that extends from `Data`. This simple inheritance unlocks powerful functionality:
+
+```php
+use Spatie\LaravelData\Data;
+
+class SongData extends Data
+{
+    public function __construct(
+        public string $title,
+        public string $artist,
+    ) {
+    }
+}
+```
+
+## Key features
+
+By extending from `Data`, you enable powerful capabilities:
+
+<CardGroup cols={2}>
+  <Card title="Automatic Transformation" icon="arrows-rotate">
+    Convert data objects into arrays, JSON, or resources like Laravel API resources
+  </Card>
+  <Card title="Lazy Properties" icon="hourglass">
+    Transform only requested parts of data objects with lazy loading support
+  </Card>
+  <Card title="Request Validation" icon="shield-check">
+    Create data objects from request data with automatic validation
+  </Card>
+  <Card title="Flexible Creation" icon="wand-magic-sparkles">
+    Construct data objects from arrays, models, requests, or any custom type
+  </Card>
+  <Card title="Eloquent Integration" icon="database">
+    Save data objects as properties of Eloquent models
+  </Card>
+  <Card title="TypeScript Generation" icon="code">
+    Export TypeScript definitions for frontend type safety
+  </Card>
+</CardGroup>
+
+## Why use Laravel Data?
+
+<AccordionGroup>
+  <Accordion title="Type safety across your stack">
+    Ensure data is properly typed when it leaves your app and comes back from the frontend, reducing errors significantly.
+  </Accordion>
+  
+  <Accordion title="Write less, do more">
+    Stop writing the same properties three times (in a resource, DTO, and request validation). Define them once.
+  </Accordion>
+  
+  <Accordion title="Less validation boilerplate">
+    Many validation rules are obvious through PHP's type system, so you write fewer explicit rules.
+  </Accordion>
+  
+  <Accordion title="Free TypeScript definitions">
+    Get TypeScript versions of your data objects automatically generated for your frontend.
+  </Accordion>
+</AccordionGroup>
+
+## Quick example
+
+Here's how Laravel Data simplifies your controllers. Instead of this:
+
+```php
+class PostController
+{
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => ['required', 'string'],
+            'content' => ['required', 'string'],
+            'status' => ['required', new Enum(PostStatus::class)],
+        ]);
+
+        $post = Post::create([
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
+            'status' => $request->enum('status', PostStatus::class),
+        ]);
+
+        return new PostResource($post);
+    }
+}
+```
+
+You can write this:
+
+```php
+class PostController
+{
+    public function store(PostData $data)
+    {
+        Post::create($data->toArray());
+
+        return $data;
+    }
+}
+```
+
+<Tip>
+  Check out this [Laracon talk](https://www.youtube.com/watch?v=CrO_7Df1cBc) for a visual introduction to Laravel Data.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Requirements" icon="list-check" href="/requirements">
+    Check if your environment meets the requirements
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Laravel Data via Composer
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Build your first data object in minutes
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/spatie/laravel-data">
+    View source code and contribute
+  </Card>
+</CardGroup>

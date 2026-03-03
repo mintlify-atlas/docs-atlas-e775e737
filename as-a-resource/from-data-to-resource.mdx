@@ -1,0 +1,165 @@
+---
+title: From Data to Resource
+description: Learn how to transform Laravel Data objects into JSON API resources
+---
+
+A data object will automatically be transformed to a JSON response when returned in a controller:
+
+```php
+class SongController
+{
+    public function show(Song $model)
+    {
+        return SongData::from($model);
+    }
+}
+```
+
+The JSON response:
+
+```json
+{
+    "name": "Never gonna give you up",
+    "artist": "Rick Astley"
+}
+```
+
+## Collections
+
+Returning a data collection from the controller:
+
+```php
+SongData::collect(Song::all());
+```
+
+Will return a collection automatically transformed to JSON:
+
+```json
+[
+    {
+        "name": "Never Gonna Give You Up",
+        "artist": "Rick Astley"
+    },
+    {
+        "name": "Giving Up on Love",
+        "artist": "Rick Astley"
+    }
+]
+```
+
+## Paginators
+
+It is also possible to provide a paginator:
+
+```php
+SongData::collect(Song::paginate());
+```
+
+The data object is smart enough to create a paginated response with links to the next, previous, last pages:
+
+```json
+{
+    "data": [
+        {
+            "name": "Never Gonna Give You Up",
+            "artist": "Rick Astley"
+        },
+        {
+            "name": "Giving Up on Love",
+            "artist": "Rick Astley"
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "first_page_url": "https://spatie.be/?page=1",
+        "from": 1,
+        "last_page": 7,
+        "last_page_url": "https://spatie.be/?page=7",
+        "next_page_url": "https://spatie.be/?page=2",
+        "path": "https://spatie.be/",
+        "per_page": 15,
+        "prev_page_url": null,
+        "to": 15,
+        "total": 100
+    }
+}
+```
+
+## Transforming Empty Objects
+
+When creating a new model, you probably want to provide a blueprint to the frontend with the required data to create a model:
+
+```json
+{
+    "name": null,
+    "artist": null
+}
+```
+
+Instead of making each property nullable, you can return an empty representation:
+
+```php
+class SongsController
+{
+    public function create(): array
+    {
+        return SongData::empty();
+    }
+}
+```
+
+### Default Values
+
+You can provide default values in the constructor:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public string $title = 'Title of the song here',
+        public string $artist = "An artist",
+    ) {
+    }
+}
+```
+
+Or pass defaults within the `empty` call:
+
+```php
+SongData::empty([
+    'name' => 'Title of the song here',
+    'artist' => 'An artist'
+]);
+```
+
+Filter properties in the empty response:
+
+```php
+SongData::empty(only: ['name']); // Will only return the `name` property
+SongData::empty(except: ['name']); // Will return the `artist` property
+```
+
+## Response Status Code
+
+When a resource is returned from a controller, the status code will automatically be set to `201 CREATED` when Laravel Data detects that the request's method is `POST`. In all other cases, `200 OK` will be returned.
+
+## Resource Classes
+
+To make it clearer that a data object is a resource, you can use the `Resource` class instead of the `Data` class:
+
+```php
+use Spatie\LaravelData\Resource;
+
+class SongResource extends Resource
+{
+    public function __construct(
+        public string $title,
+        public string $artist,
+    ) {
+    }
+}
+```
+
+<Note>
+Resource classes won't validate data or check authorization. They are only used to transform data which makes them faster.
+</Note>

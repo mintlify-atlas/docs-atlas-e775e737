@@ -1,0 +1,116 @@
+---
+title: Appending Properties
+description: Add extra properties to data objects when transforming to API resources
+---
+
+You can add extra properties to your data objects when they are transformed into a resource:
+
+```php
+SongData::from(Song::first())->additional([
+    'year' => 1987,
+]);
+```
+
+Output:
+
+```php
+[
+    'name' => 'Never gonna give you up',
+    'artist' => 'Rick Astley',
+    'year' => 1987,
+]
+```
+
+## Using Closures
+
+When using a closure, you have access to the underlying data object:
+
+```php
+SongData::from(Song::first())->additional([
+    'slug' => fn(SongData $songData) => Str::slug($songData->title),
+]);
+```
+
+Output:
+
+```php
+[
+    'name' => 'Never gonna give you up',
+    'artist' => 'Rick Astley',
+    'slug' => 'never-gonna-give-you-up',
+]
+```
+
+## The with Method
+
+Add extra properties by overwriting the `with` method within your data object:
+
+```php
+class SongData extends Data
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+        public string $artist
+    ) {
+    }
+
+    public static function fromModel(Song $song): self
+    {
+        return new self(
+            $song->id,
+            $song->title,
+            $song->artist
+        );
+    }
+    
+    public function with()
+    {
+        return [
+            'endpoints' => [
+                'show' => action([SongsController::class, 'show'], $this->id),
+                'edit' => action([SongsController::class, 'edit'], $this->id),
+                'delete' => action([SongsController::class, 'delete'], $this->id),
+            ]
+        ];
+    }
+}
+```
+
+Now each transformed data object contains an `endpoints` key:
+
+```php
+[
+    'id' => 1,
+    'name' => 'Never gonna give you up',
+    'artist' => 'Rick Astley',
+    'endpoints' => [
+        'show' => 'https://spatie.be/songs/1',
+        'edit' => 'https://spatie.be/songs/1',
+        'delete' => 'https://spatie.be/songs/1',
+    ],
+]
+```
+
+## Use Cases
+
+Appending properties is useful for:
+
+<CardGroup cols={2}>
+  <Card title="API Endpoints" icon="link">
+    Add related API endpoints for the resource
+  </Card>
+  <Card title="Computed Values" icon="calculator">
+    Include calculated or derived properties
+  </Card>
+  <Card title="Metadata" icon="tag">
+    Attach metadata like timestamps or versions
+  </Card>
+  <Card title="Permissions" icon="lock">
+    Include user-specific permission flags
+  </Card>
+</CardGroup>
+
+<Tip>
+The `with` method is called every time the data object is transformed, making it perfect for dynamic properties that depend on the current state.
+</Tip>

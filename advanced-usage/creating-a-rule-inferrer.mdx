@@ -1,0 +1,107 @@
+---
+title: Creating a Rule Inferrer
+description: Build custom rule inferrers to automatically infer validation rules for data properties
+---
+
+Rule inferrers automatically generate validation rules for properties within a data object.
+
+## RuleInferrer Interface
+
+Implement the `RuleInferrer` interface:
+
+```php
+interface RuleInferrer
+{
+    public function handle(DataProperty $property, PropertyRules $rules, ValidationContext $context): PropertyRules;
+}
+```
+
+### Parameters
+
+- **property** - `DataProperty` object representing the property ([read more](/advanced-usage/internal-structures))
+- **rules** - `PropertyRules` collection of previously inferred rules
+- **context** - `ValidationContext` containing:
+  - `payload` - Current payload for the data object being validated
+  - `fullPayload` - Full payload being validated
+  - `validationPath` - Path from full payload to current payload
+
+## Working with PropertyRules
+
+### Adding Rules
+
+```php
+$rules->add(new Min(42));
+```
+
+### Automatic Rule Replacement
+
+When adding a rule of the same type, the previous version is removed:
+
+```php
+$rules->add(new Min(42));
+$rules->add(new Min(314)); 
+
+$rules->all(); // [new Min(314)]
+```
+
+### Adding String Rules
+
+```php
+$rules->add(new Rule('min:42'));
+```
+
+### Checking for Rule Types
+
+```php
+$rules->hasType(Min::class);
+```
+
+### Removing Rules
+
+```php
+$rules->removeType(Min::class);
+```
+
+## Example Implementation
+
+```php
+use Spatie\LaravelData\Support\DataProperty;
+use Spatie\LaravelData\Support\Validation\PropertyRules;
+use Spatie\LaravelData\Support\Validation\ValidationContext;
+use Spatie\LaravelData\Support\Validation\RuleInferrer;
+use Spatie\LaravelData\Support\Validation\ValidationRule\Min;
+use Spatie\LaravelData\Support\Validation\ValidationRule\Max;
+
+class AgeRuleInferrer implements RuleInferrer
+{
+    public function handle(
+        DataProperty $property,
+        PropertyRules $rules,
+        ValidationContext $context
+    ): PropertyRules {
+        if ($property->name === 'age') {
+            $rules->add(new Min(0));
+            $rules->add(new Max(120));
+        }
+
+        return $rules;
+    }
+}
+```
+
+## Registration
+
+Rule inferrers must be registered in the `config/data.php` config file:
+
+```php
+'rule_inferrers' => [
+    // Default inferrers...
+    App\Data\RuleInferrers\AgeRuleInferrer::class,
+],
+```
+
+## Return Value
+
+<Note>
+A rule inferrer must always return a `PropertyRules` collection.
+</Note>
