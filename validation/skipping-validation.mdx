@@ -3,6 +3,34 @@ title: Skipping Validation
 description: Learn how to skip validation for specific properties or entire data classes
 ---
 
+## Using the WithoutValidation attribute
+
+You can skip validation for specific properties by using the `#[WithoutValidation]` attribute:
+
+```php
+use Spatie\LaravelData\Attributes\WithoutValidation;
+use Spatie\LaravelData\Data;
+
+class UserData extends Data
+{
+    public function __construct(
+        #[Required]
+        public string $name,
+        #[Required, Email]
+        public string $email,
+        #[WithoutValidation]
+        public ?string $internal_note,
+    ) {
+    }
+}
+```
+
+In this example, the `internal_note` property will not be validated, even though other properties have validation rules.
+
+<Tip>
+This is useful for properties that should bypass validation, such as computed values, internal flags, or data that's already been validated elsewhere.
+</Tip>
+
 Sometimes you don't want properties to be automatically validated, for instance when you're manually overwriting the
 rules method like this:
 

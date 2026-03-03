@@ -134,3 +134,44 @@ class AlbumData extends Data
 <Warning>
 Always type collections of data objects by annotation or the `DataCollectionOf` attribute. This is essential for correct transformation.
 </Warning>
+
+## Hiding properties
+
+You can hide specific properties from being included in the transformation using the `Hidden` attribute:
+
+```php
+use Spatie\LaravelData\Attributes\Hidden;
+use Spatie\LaravelData\Data;
+
+class UserData extends Data
+{
+    public function __construct(
+        public string $name,
+        public string $email,
+        #[Hidden]
+        public string $password,
+    ) {
+    }
+}
+```
+
+The `password` property will never be included when transforming the data object to an array or JSON:
+
+```php
+UserData::from([
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'password' => 'secret',
+])->toArray();
+
+// Result:
+[
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    // password is not included
+]
+```
+
+<Note>
+The `Hidden` attribute is useful for excluding sensitive data like passwords, API tokens, or internal properties from API responses.
+</Note>

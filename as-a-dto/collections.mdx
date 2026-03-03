@@ -170,6 +170,28 @@ use Spatie\LaravelData\CursorPaginatedCollection;
 SongData::collect(Song::cursorPaginate(), CursorPaginatedCollection::class);
 ```
 
+## Transforming paginated collection items
+
+Both `PaginatedDataCollection` and `CursorPaginatedDataCollection` support the `through()` method to transform items in the collection:
+
+```php
+$paginatedPosts = PostData::collect($posts->paginate(10));
+
+// Transform each item in the paginated collection
+$transformedPosts = $paginatedPosts->through(function (PostData $post) {
+    return new EnrichedPostData(
+        ...$post->toArray(),
+        view_count: $post->calculateViews(),
+    );
+});
+```
+
+The `through()` method returns a new collection with transformed items while preserving pagination information.
+
+<Info>
+This works identically for both `PaginatedDataCollection` (using `paginate()`) and `CursorPaginatedDataCollection` (using `cursorPaginate()`).
+</Info>
+
 ### Why Use These Collection Classes?
 
 We advise you to always use arrays, Laravel collections and paginators within your data objects. But let's say you have a controller like this:

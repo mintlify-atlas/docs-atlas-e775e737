@@ -117,6 +117,18 @@ The published configuration file allows you to customize:
     ],
     ```
   </Accordion>
+
+  <Accordion title="Debugging with var dumper">
+    Controls how data objects appear when using `dump()` or `dd()`:
+    
+    - **`'enabled'`** - Always use the custom caster (shows data properties clearly)
+    - **`'disabled'`** - Never use the custom caster (standard object dump)
+    - **`'development'`** (default) - Use custom caster only in non-production environments
+    
+    ```php
+    'var_dumper_caster_mode' => 'development',
+    ```
+  </Accordion>
 </AccordionGroup>
 
 ## Creating data classes
